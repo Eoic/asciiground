@@ -280,11 +280,17 @@ Before pushing to production, ensure these secrets are configured in GitHub:
    - Create "Automation" token with "Publish" permissions
    - Add to GitHub: Settings → Secrets and variables → Actions
 
-2. **GitHub Pages**: Required for CDN deployment
+2. **PAT_TOKEN**: Required for workflow triggering
+   - Go to GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
+   - Create token with `Contents: write` and `Actions: write` permissions
+   - Add to GitHub: Settings → Secrets and variables → Actions
+   - This allows the release workflow to trigger the CI/CD pipeline
+
+3. **GitHub Pages**: Required for CDN deployment
    - Go to repository Settings → Pages
    - Set Source to "GitHub Actions"
 
-3. **Codecov** (optional): For coverage reporting
+4. **Codecov** (optional): For coverage reporting
    - Connect repository at [codecov.io](https://codecov.io)
    - No additional secrets needed (uses GITHUB_TOKEN)
 

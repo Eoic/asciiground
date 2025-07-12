@@ -21,11 +21,17 @@ This document explains how to set up automated publishing to NPM and CDN for the
    
    ```
    NPM_TOKEN: your_npm_publish_token
+   PAT_TOKEN: your_github_personal_access_token
    ```
    
    To get your NPM token:
    - Go to [npmjs.com](https://npmjs.com) → Account → Access Tokens
    - Create "Automation" token with "Publish" permissions
+
+   To get your GitHub Personal Access Token (PAT):
+   - Go to GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
+   - Create token with `Contents: write` and `Actions: write` permissions
+   - This is required for the release workflow to trigger the CI/CD pipeline
 
 ### 2. Local development setup
 
