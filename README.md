@@ -1,6 +1,6 @@
 # ASCIIGround
 
-[![CI/CD Pipeline](https://github.com/Eoic/asciiground/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/Eoic/asciiground/actions)
+[![CI/CD Pipeline](https://github.com/Eoic/asciiground/actions/workflows/ci-cd.yml/badge.svg?branch=master)](https://github.com/Eoic/asciiground/actions)
 [![npm version](https://badge.fury.io/js/asciiground.svg)](https://badge.fury.io/js/asciiground)
 [![npm downloads](https://img.shields.io/npm/dm/asciiground.svg)](https://npmjs.org/package/asciiground)
 [![codecov](https://codecov.io/gh/Eoic/asciiground/branch/main/graph/badge.svg)](https://codecov.io/gh/Eoic/asciiground)
