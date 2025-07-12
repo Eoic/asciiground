@@ -45,7 +45,7 @@ jobs:
         cp demo.html docs/index.html
         
         # Copy built files to docs for fallback/local usage
-        cp dist/* docs/
+        cp -r dist/* docs/
         
         # Create docs index for README.
         cat > docs/README.html << 'EOF'
