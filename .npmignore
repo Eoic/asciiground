@@ -1,0 +1,21 @@
+# Development files.
+src/
+examples/
+.vscode/
+.github/
+node_modules/
+*.log
+.DS_Store
+
+# Build files not needed in package.
+public/
+index.html
+example.html
+vite.config.ts
+tsconfig.json
+
+# Keep only the dist folder and necessary files.
+!dist/
+!README.md
+!LICENSE
+!package.json

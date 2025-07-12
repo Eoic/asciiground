@@ -1,0 +1,44 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Build output
+dist/
+coverage/
+
+# Publishing and automation logs
+*.tgz
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Release files
+RELEASE_NOTES.md
+CHANGELOG.md
+
+# Other.
+.github/copilot-instructions.md
+!.github/
+NOTES.md
+BADGES.md

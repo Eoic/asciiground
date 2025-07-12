@@ -1,0 +1,156 @@
+name: CI/CD pipeline
+
+on:
+  push:
+    branches: [ master, integration ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types: [ published ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run type check
+      run: npm run typecheck
+
+    - name: Run linter
+      run: npx eslint src/**/*.ts
+
+    - name: Run tests
+      run: npm run test:run
+
+    - name: Run tests with coverage
+      run: npm run test:coverage
+
+    - name: Upload coverage reports to Codecov
+      if: matrix.node-version == '20.x'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build library
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/
+        retention-days: 30
+
+  publish-npm:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        registry-url: 'https://registry.npmjs.org'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build library
+      run: npm run build
+
+    - name: Publish to NPM
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  deploy-cdn:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build library
+      run: npm run build
+
+    - name: Deploy to GitHub pages (CDN)
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        destination_dir: releases/${{ github.event.release.tag_name }}
+        keep_files: true
+
+    - name: Update latest CDN link
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        destination_dir: releases/latest
+        keep_files: false
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [publish-npm, deploy-cdn]
+    if: always() && github.event_name == 'release'
+    steps:
+    - name: Notify success
+      if: needs.publish-npm.result == 'success' && needs.deploy-cdn.result == 'success'
+      run: |
+        echo "Successfully published version ${{ github.event.release.tag_name }} to NPM and CDN."
+        echo "NPM: https://www.npmjs.com/package/asciiground"
+        echo "CDN: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/releases/latest/asciiground.umd.js"
+
+    - name: Notify failure
+      if: needs.publish-npm.result == 'failure' || needs.deploy-cdn.result == 'failure'
+      run: |
+        echo "Publication failed for version ${{ github.event.release.tag_name }}"
+        exit 1

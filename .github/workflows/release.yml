@@ -1,0 +1,155 @@
+name: Version bump and release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+      pre_release:
+        description: 'Create pre-release'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  version-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+    - name: Run tests
+      run: npm run test:run
+
+    - name: Bump version
+      id: version
+      run: |
+        NEW_VERSION=$(npm version ${{ github.event.inputs.version_type }} --no-git-tag-version)
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "version_number=${NEW_VERSION#v}" >> $GITHUB_OUTPUT
+
+    - name: Update package files
+      run: |
+        git add package.json package-lock.json
+        git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
+
+    - name: Build library
+      run: npm run build
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Install conventional-changelog-cli
+        npm install -g conventional-changelog-cli
+        
+        # Generate changelog using conventional commits with custom config
+        conventional-changelog -p angular -i RELEASE_NOTES.md -s -r 1 \
+          --config .conventionalcommits.json || true
+        
+        # If no RELEASE_NOTES.md was generated or it's empty, create a basic one
+        if [ ! -s RELEASE_NOTES.md ]; then
+          echo "## ${{ steps.version.outputs.new_version }}" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "_Released on $(date +'%Y-%m-%d')_" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          
+          # Fallback to simple git log if conventional-changelog finds nothing
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "### Initial Release" >> RELEASE_NOTES.md
+            echo "" >> RELEASE_NOTES.md
+            echo "This is the first release of ASCIIGround library." >> RELEASE_NOTES.md
+          else
+            echo "### Changes" >> RELEASE_NOTES.md
+            echo "" >> RELEASE_NOTES.md
+            git log --pretty=format:"- %s" $LAST_TAG..HEAD >> RELEASE_NOTES.md || echo "- No changes" >> RELEASE_NOTES.md
+          fi
+        fi
+        
+        # Add metadata to the changelog
+        echo "" >> RELEASE_NOTES.md
+        echo "---" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "**Release Date:** $(date +'%Y-%m-%d')" >> RELEASE_NOTES.md
+        echo "**Version:** ${{ steps.version.outputs.new_version }}" >> RELEASE_NOTES.md
+        
+        # Add comparison link if we have a previous tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        if [ ! -z "$LAST_TAG" ]; then
+          echo "**Full Changelog:** https://github.com/${{ github.repository }}/compare/$LAST_TAG...${{ steps.version.outputs.new_version }}" >> RELEASE_NOTES.md
+        fi
+
+    - name: Push changes
+      run: |
+        git push origin master
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.version.outputs.new_version }}
+        release_name: "Release ${{ steps.version.outputs.new_version }}"
+        body_path: RELEASE_NOTES.md
+        draft: false
+        prerelease: ${{ github.event.inputs.pre_release }}
+        generate_release_notes: true  # Enable GitHub's auto-generated notes
+
+    - name: Upload UMD build
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/asciiground.umd.js
+        asset_name: asciiground.umd.js
+        asset_content_type: application/javascript
+
+    - name: Upload ES module build
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/asciiground.es.js
+        asset_name: asciiground.es.js
+        asset_content_type: application/javascript
+
+    - name: Upload TypeScript definitions
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/index.d.ts
+        asset_name: index.d.ts
+        asset_content_type: application/typescript
