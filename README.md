@@ -1,11 +1,11 @@
 # ASCIIGround
 
 [![CI/CD Pipeline](https://github.com/Eoic/asciiground/actions/workflows/ci-cd.yml/badge.svg?branch=master)](https://github.com/Eoic/asciiground/actions)
+[![codecov](https://codecov.io/gh/Eoic/asciiground/graph/badge.svg?token=4M6ADHLZ4F)](https://codecov.io/gh/Eoic/asciiground)
 [![npm version](https://img.shields.io/npm/v/asciiground.svg?style=flat)](https://www.npmjs.com/package/asciiground)
 [![unpkg](https://img.shields.io/npm/v/asciiground?label=unpkg&color=blue)](https://unpkg.com/asciiground@latest/dist/)
-[![codecov](https://codecov.io/gh/Eoic/asciiground/branch/main/graph/badge.svg)](https://codecov.io/gh/Eoic/asciiground)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![](https://data.jsdelivr.com/v1/package/npm/asciiground/badge)](https://www.jsdelivr.com/package/npm/asciiground)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A JS library for creating animated ASCII backgrounds.
 

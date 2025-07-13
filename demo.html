@@ -153,7 +153,6 @@
 
     <canvas id="background-canvas"></canvas>
 
-    <!-- Load ASCIIGround from CDN -->
     <script src="https://unpkg.com/asciiground@latest/dist/asciiground.umd.js"></script>
     <script>
         let currentBackground;
@@ -282,13 +281,10 @@
             }
         });
 
-        // Initialize when library is loaded
         window.addEventListener('load', () => {
-            // Small delay to ensure CDN script is fully loaded
             setTimeout(initBackground, 100);
         });
 
-        // Fallback initialization if ASCIIGround is already available
         if (typeof ASCIIGround !== 'undefined') {
             initBackground();
         }
