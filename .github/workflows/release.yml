@@ -1,4 +1,4 @@
-name: Version bump and release
+name: Release and publish
 
 on:
   workflow_dispatch:
@@ -19,7 +19,7 @@ on:
         type: boolean
 
 jobs:
-  version-and-release:
+  release-and-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -37,6 +37,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20.x'
+        registry-url: 'https://registry.npmjs.org'
         cache: 'npm'
 
     - name: Install dependencies
@@ -123,7 +124,6 @@ jobs:
         body_path: RELEASE_NOTES.md
         draft: false
         prerelease: ${{ github.event.inputs.pre_release }}
-        generate_release_notes: true  # Enable GitHub's auto-generated notes
 
     - name: Upload UMD build
       uses: actions/upload-release-asset@v1
@@ -154,3 +154,42 @@ jobs:
         asset_path: ./dist/index.d.ts
         asset_name: index.d.ts
         asset_content_type: application/typescript
+
+    - name: Publish to NPM
+      run: |
+        if [ "${{ github.event.inputs.pre_release }}" == "true" ]; then
+          echo "Publishing pre-release with beta tag"
+          npm publish --tag beta
+        else
+          echo "Publishing stable release"
+          npm publish
+        fi
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Deploy to GitHub pages (CDN)
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        destination_dir: releases/${{ steps.version.outputs.new_version }}
+        keep_files: true
+
+    - name: Update latest CDN link
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        destination_dir: releases/latest
+        keep_files: false
+
+    - name: Notify success
+      run: |
+        if [ "${{ github.event.inputs.pre_release }}" == "true" ]; then
+          echo "Successfully published pre-release version ${{ steps.version.outputs.new_version }} to NPM (beta tag) and CDN."
+          echo "NPM: https://www.npmjs.com/package/asciiground (install with: npm install asciiground@beta)"
+        else
+          echo "Successfully published stable version ${{ steps.version.outputs.new_version }} to NPM and CDN."
+          echo "NPM: https://www.npmjs.com/package/asciiground"
+        fi
+        echo "CDN: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/releases/latest/asciiground.umd.js"
