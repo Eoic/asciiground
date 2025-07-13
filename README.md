@@ -1,10 +1,9 @@
 # ASCIIGround
 
 [![CI/CD Pipeline](https://github.com/Eoic/asciiground/actions/workflows/ci-cd.yml/badge.svg?branch=master)](https://github.com/Eoic/asciiground/actions)
-[![npm version](https://badge.fury.io/js/asciiground.svg)](https://badge.fury.io/js/asciiground)
-[![npm downloads](https://img.shields.io/npm/dm/asciiground.svg)](https://npmjs.org/package/asciiground)
+[![npm version](https://img.shields.io/npm/v/asciiground.svg?style=flat)](https://www.npmjs.com/package/asciiground)
+[![unpkg](https://img.shields.io/npm/v/asciiground?label=unpkg&color=blue)](https://unpkg.com/asciiground@latest/dist/)
 [![codecov](https://codecov.io/gh/Eoic/asciiground/branch/main/graph/badge.svg)](https://codecov.io/gh/Eoic/asciiground)
-[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![](https://data.jsdelivr.com/v1/package/npm/asciiground/badge)](https://www.jsdelivr.com/package/npm/asciiground)
 
@@ -78,15 +77,16 @@ background.start()
 </head>
 <body>
     <canvas id="ascii-canvas" width="800" height="600"></canvas>
-    
     <script src="https://unpkg.com/asciiground@latest/dist/asciiground.umd.js"></script>
     <script>
         const canvas = document.getElementById('ascii-canvas')
+
         const ascii = new ASCIIGround.default(canvas, {
             pattern: 'perlin',
             characters: ['.', ':', ';', '+', '*', '#'],
             speed: 0.01
         })
+
         ascii.start()
     </script>
 </body>
@@ -234,9 +234,9 @@ npm run typecheck
 ### Testing
 
 ```bash
-npm run test           # Run tests in watch mode
-npm run test:run       # Run tests once
-npm run test:coverage  # Generate coverage report
+npm run test:watch     # Run tests in watch mode.
+npm run test:run       # Run tests once.
+npm run test:coverage  # Generate coverage report.
 ```
 
 ### Publishing
@@ -244,10 +244,9 @@ npm run test:coverage  # Generate coverage report
 This project uses automated publishing via GitHub Actions. See [PUBLISHING.md](./PUBLISHING.md) for detailed setup instructions.
 
 ```bash
-# Quick publish commands
-npm run publish:patch  # 1.0.0 → 1.0.1
-npm run publish:minor  # 1.0.0 → 1.1.0  
-npm run publish:major  # 1.0.0 → 2.0.0
+npm run publish:patch  # 1.0.0 → 1.0.1.
+npm run publish:minor  # 1.0.0 → 1.1.0.
+npm run publish:major  # 1.0.0 → 2.0.0.
 ```
 
 ### Validate setup
@@ -261,38 +260,32 @@ Before first publish, run the setup validation:
 This checks all required files, configurations, and build processes.
 
 ### Development workflow
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Make your changes and add tests
-4. Run the test suite: `npm run test:run`
-5. Run type checking: `npm run typecheck`
-6. Run linting: `npm run lint`
-7. Commit your changes: `git commit -m 'Add some feature'`
-8. Push to the branch: `git push origin feature/your-feature`
-9. Create a Pull Request
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature/your-feature`.
+3. Make your changes and add tests.
+4. Run the test suite: `npm run test:run`.
+5. Run type checking: `npm run typecheck`.
+6. Run linting: `npm run lint`.
+7. Commit your changes: `npm run commit` and follow the prompts.
+8. Push to the branch: `git push origin feature/your-feature`.
+9. Create a Pull Request.
 
 ### Repository setup (for maintainers)
 
 Before pushing to production, ensure these secrets are configured in GitHub:
 
-1. **NPM_TOKEN**: Required for automated NPM publishing
-   - Go to [npmjs.com](https://npmjs.com) → Account → Access Tokens
-   - Create "Automation" token with "Publish" permissions
-   - Add to GitHub: Settings → Secrets and variables → Actions
+1. **NPM_TOKEN** - required for automated NPM publishing:
+   - Go to [npmjs.com](https://npmjs.com) → Account → Access Tokens.
+   - Create "Automation" token with "Publish" permissions.
+   - Add to GitHub from Settings → Secrets and variables → Actions.
 
-2. **PAT_TOKEN**: Required for workflow triggering
-   - Go to GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
-   - Create token with `Contents: write` and `Actions: write` permissions
-   - Add to GitHub: Settings → Secrets and variables → Actions
-   - This allows the release workflow to trigger the CI/CD pipeline
+2. **GitHub Pages** - required for CDN deployment:
+   - Go to repository Settings → Pages.
+   - Set "Source" to "GitHub Actions".
 
-3. **GitHub Pages**: Required for CDN deployment
-   - Go to repository Settings → Pages
-   - Set Source to "GitHub Actions"
-
-4. **Codecov** (optional): For coverage reporting
-   - Connect repository at [codecov.io](https://codecov.io)
-   - No additional secrets needed (uses GITHUB_TOKEN)
+3. **Codecov** (optional) - for coverage reporting:
+   - Connect repository at [codecov.io](https://codecov.io).
+   - Add `CODECOV_TOKEN` to repository secrets.
 
 See [PUBLISHING.md](./PUBLISHING.md) for complete setup instructions.
 
@@ -300,11 +293,11 @@ See [PUBLISHING.md](./PUBLISHING.md) for complete setup instructions.
 
 Before pushing to the remote repository:
 
-- [ ] All tests pass: `npm run test:run`
-- [ ] Code builds successfully: `npm run build`
-- [ ] Type checking passes: `npm run typecheck`
-- [ ] Linting passes: `npm run lint`
-- [ ] Setup validation passes: `./scripts/test-setup.sh`
-- [ ] Documentation is up to date
-- [ ] NPM_TOKEN secret is configured in GitHub (for publishing)
-- [ ] GitHub Pages is enabled (for CDN deployment)
+- [ ] All tests pass: `npm run test:run`.
+- [ ] Code builds successfully: `npm run build`.
+- [ ] Type checking passes: `npm run typecheck`.
+- [ ] Linting passes: `npm run lint`.
+- [ ] Setup validation passes: `./scripts/test-setup.sh`.
+- [ ] Documentation is up to date.
+- [ ] `NPM_TOKEN` secret is configured in GitHub (for publishing).
+- [ ] GitHub Pages is enabled (for CDN deployment).
