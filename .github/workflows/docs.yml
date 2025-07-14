@@ -41,80 +41,11 @@ jobs:
         mkdir -p docs/examples
         cp examples/*.ts docs/examples/
 
-        # Copy the demo.html as the main demo page (uses CDN)
+        # Copy the demo.html as the main demo page (uses CDN).
         cp demo.html docs/index.html
         
-        # Copy built files to docs for fallback/local usage
+        # Copy built files to docs for fallback/local usage.
         cp -r dist/* docs/
-        
-        # Create docs index for README.
-        cat > docs/README.html << 'EOF'
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>ASCIIGround Documentation</title>
-            <style>
-                body { 
-                    font-family: Arial, sans-serif; 
-                    max-width: 800px; 
-                    margin: 0 auto; 
-                    padding: 20px; 
-                    line-height: 1.6;
-                }
-                pre { 
-                    background: #f5f5f5; 
-                    padding: 15px; 
-                    border-radius: 5px; 
-                    overflow-x: auto; 
-                }
-                code { 
-                    background: #f5f5f5; 
-                    padding: 2px 4px; 
-                    border-radius: 3px; 
-                }
-                .header {
-                    text-align: center;
-                    margin-bottom: 30px;
-                }
-                .demo-link {
-                    display: inline-block;
-                    background: #007acc;
-                    color: white;
-                    padding: 10px 20px;
-                    text-decoration: none;
-                    border-radius: 5px;
-                    margin: 10px;
-                }
-                .demo-link:hover {
-                    background: #005a99;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>ASCIIGround Documentation</h1>
-                <a href="index.html" class="demo-link">Live demo</a>
-                <a href="https://www.npmjs.com/package/asciiground" class="demo-link">NPM package</a>
-            </div>
-        EOF
-        
-        # Convert README.md to HTML and append.
-        node -e "
-        const fs = require('fs');
-        const content = fs.readFileSync('README.md', 'utf8');
-        const html = content
-          .replace(/# (.*)/g, '<h1>\$1</h1>')
-          .replace(/## (.*)/g, '<h2>\$1</h2>')
-          .replace(/### (.*)/g, '<h3>\$1</h3>')
-          .replace(/\`\`\`([^\\n]*\\n[^]*?)\`\`\`/g, '<pre><code>\$1</code></pre>')
-          .replace(/\`([^\\\`]+)\`/g, '<code>\$1</code>')
-          .replace(/\\n/g, '<br>\\n');
-        fs.appendFileSync('docs/README.html', html);
-        "
-        
-        echo "</body></html>" >> docs/README.html
 
     - name: Setup GitHub Pages.
       uses: actions/configure-pages@v4
