@@ -32,20 +32,12 @@ jobs:
 
     - name: Create documentation site
       run: |
-        mkdir -p docs
+        # Copy build files to a specific subdirectory to avoid overwriting docs.
+        mkdir -p docs/dist
+        cp -r dist/* docs/dist/
 
-        # Copy README as master documentation.
-        cp README.md docs/
-
-        # Create examples page.
-        mkdir -p docs/examples
-        cp examples/*.ts docs/examples/
-
-        # Copy the demo.html as the main demo page (uses CDN).
-        cp demo.html docs/index.html
-        
-        # Copy built files to docs for fallback/local usage.
-        cp -r dist/* docs/
+        # Generate API documentation
+        npx typedoc src/index.ts --out docs/manual
 
     - name: Setup GitHub Pages.
       uses: actions/configure-pages@v4

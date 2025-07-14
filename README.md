@@ -109,10 +109,13 @@ background.start()
 
 ### ASCIIGround methods
 
-#### `start(): void`
+#### `init(): void`
+Initializes the canvas and character grid based on options.
+
+#### `startAnimation(): void`
 Starts the animation loop.
 
-#### `stop(): void`
+#### `stopAnimation(): void`
 Stops the animation loop.
 
 #### `updateOptions(options: Partial<ASCIIGroundOptions>): void`

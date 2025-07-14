@@ -1,0 +1,166 @@
+body {
+    overflow: hidden;
+}
+
+.controls {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.controls h2 {
+    margin-top: 0;
+    color: #f5f5f5;
+    font-size: 1.2rem;
+}
+
+.controls button {
+    padding: 8px 16px;
+    margin: 4px;
+    font-size: 0.9rem;
+}
+
+.controls button.active {
+    background: linear-gradient(135deg, #0d7377 0%, #14a085 100%);
+    box-shadow: 0 4px 14px rgba(13, 115, 119, 0.4);
+}
+
+.info {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 15px;
+    max-width: 300px;
+}
+
+.info h3 {
+    margin-top: 0;
+    color: #f5f5f5;
+    font-size: 1rem;
+}
+
+.info p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+    color: #ddd;
+}
+
+.header {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    text-align: right;
+    padding: 15px;
+}
+
+.header h1 {
+    margin: 0;
+    color: #f5f5f5;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+
+
+.header p {
+    margin: 5px 0 0 0;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    color: #ddd;
+}
+
+canvas {
+    display: block;
+}
+
+.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #f5f5f5;
+    font-size: 1.2rem;
+    z-index: 2000;
+}
+
+
+
+@media (max-width: 768px) {
+    .controls {
+        max-width: 350px;
+        padding: 15px;
+    }
+
+    .controls h2 {
+        font-size: 1.1rem;
+    }
+
+    .controls button {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .header h1 {
+        font-size: 1.3rem;
+    }
+
+    .header p {
+        font-size: 0.7rem;
+    }
+
+    .info {
+        max-width: 250px;
+        padding: 12px;
+    }
+
+    .info h3 {
+        font-size: 0.9rem;
+    }
+
+    .info p {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .controls {
+        top: 10px;
+        left: 10px;
+        padding: 12px;
+        max-width: calc(100vw - 40px);
+    }
+
+    .controls button {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+        margin: 2px;
+    }
+
+    .header {
+        top: 10px;
+        right: 10px;
+        padding: 10px;
+    }
+
+    .header h1 {
+        font-size: 1.1rem;
+    }
+
+    .info {
+        bottom: 10px;
+        right: 10px;
+        max-width: calc(100vw - 40px);
+        padding: 10px;
+    }
+
+    .loading {
+        font-size: 1rem;
+    }
+}

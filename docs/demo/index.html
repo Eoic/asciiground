@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCIIGround demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/common.css">
+    <link rel="stylesheet" href="../styles/demo.css">
+</head>
+
+<body>
+    <div class="loading gradient-text" id="loading">Loading ASCIIGround...</div>
+
+    <div class="header glass">
+        <h1 class="gradient-text">
+            <span class="terminal-symbol">></span>
+            ASCIIGround
+        </h1>
+        <p>Live demo from CDN</p>
+    </div>
+
+    <div class="controls glass" style="display: none;" id="controls">
+        <h2 class="gradient-text">Controls</h2>
+
+        <div>
+            <button class="btn btn-primary" onclick="setPattern('perlin')" id="btn-perlin">Perlin Noise</button>
+            <button class="btn btn-primary" onclick="setPattern('wave')" id="btn-wave">Waves</button>
+            <button class="btn btn-primary" onclick="setPattern('rain')" id="btn-rain">Rain</button>
+            <button class="btn btn-primary" onclick="setPattern('static')" id="btn-static">Static</button>
+        </div>
+
+        <div style="margin-top: 10px;">
+            <button class="btn btn-primary" onclick="toggleAnimation()" id="btn-toggle">Start animation</button>
+            <button class="btn btn-primary" onclick="changeSpeed(event)" id="btn-speed">Change speed (0.001)</button>
+        </div>
+    </div>
+
+    <div class="info glass" style="display: none;" id="info">
+        <h3 class="gradient-text">Current settings</h3>
+        <p>Pattern: <span id="current-pattern">perlin</span></p>
+        <p>Speed: <span id="current-speed">0.001</span></p>
+        <p>Characters: <span id="current-chars">8</span></p>
+        <p>FPS: <span id="current-fps">~60</span></p>
+    </div>
+
+    <canvas id="background-canvas"></canvas>
+    <!-- <script src="https://unpkg.com/asciiground@latest/dist/asciiground.umd.js"></script> -->
+    <script src="../../dist/asciiground.umd.js"></script>
+
+    <script>
+        let ascii;
+        let currentSpeed = 0.001;
+        let currentPatternName = 'perlin';
+
+        const patterns = {
+            perlin: [' ', '.', ':', ';', '+', '*', '#', '@'],
+            wave: ['~', '-', '=', '#', '▓', '█'],
+            rain: ['|', '!', '1', ':', '.', ' '],
+            static: [' ', '.', '*', '#', '▓', '█']
+        };
+
+        function initBackground() {
+            const canvas = document.getElementById('background-canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            try {
+                ascii = new ASCIIGround.default(canvas, {
+                    pattern: 'perlin',
+                    characters: patterns.perlin,
+                    speed: currentSpeed,
+                    fontSize: 12,
+                    color: '#667eea',
+                    backgroundColor: '#292929',
+                });
+
+                ascii.init();
+                updateInfo();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('controls').style.display = 'block';
+                document.getElementById('info').style.display = 'block';
+                updateActiveButton();
+            } catch (error) {
+                console.error('Failed to initialize ASCIIGround:', error);
+                document.getElementById('loading').textContent = 'Failed to load ASCIIGround library.';
+            }
+        }
+
+        function setPattern(pattern) {
+            if (ascii && patterns[pattern]) {
+                currentPatternName = pattern;
+
+                ascii.updateOptions({
+                    pattern: pattern,
+                    characters: patterns[pattern]
+                });
+
+                updateInfo();
+                updateActiveButton();
+            }
+        }
+
+        function toggleAnimation() {
+            if (!ascii)
+                return;
+
+            ascii.isAnimating ? ascii.stopAnimation() : ascii.startAnimation();
+            setPattern(currentPatternName);
+            document.getElementById('btn-toggle').textContent = ascii.isAnimating ? 'Stop animation' : 'Start animation';
+        }
+
+        function changeSpeed(event) {
+            const speeds = [0.001, 0.005, 0.01, 0.02, 0.05, 0.1];
+            const currentIndex = speeds.indexOf(currentSpeed);
+            const nextIndex = (currentIndex + 1) % speeds.length;
+            currentSpeed = speeds[nextIndex];
+            event.target.textContent = `Change speed (${currentSpeed})`;
+
+            if (ascii) {
+                ascii.updateOptions({ speed: currentSpeed });
+                updateInfo();
+            }
+        }
+
+        function updateInfo() {
+            const chars = ascii?.options?.characters?.length || 8;
+
+            document.getElementById('current-pattern').textContent = currentPatternName;
+            document.getElementById('current-speed').textContent = `${currentSpeed}`;
+            document.getElementById('current-chars').textContent = chars;
+        }
+
+        function updateActiveButton() {
+            ['perlin', 'wave', 'rain', 'static'].forEach(pattern => {
+                document.getElementById(`btn-${pattern}`).classList.remove('active');
+            });
+
+            document.getElementById(`btn-${currentPatternName}`).classList.add('active');
+        }
+
+        window.addEventListener('resize', () => {
+            if (ascii) {
+                const canvas = document.getElementById('background-canvas');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                ascii.resize(canvas.width, canvas.height);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case '1': setPattern('perlin'); break;
+                case '2': setPattern('wave'); break;
+                case '3': setPattern('rain'); break;
+                case '4': setPattern('static'); break;
+                case ' ':
+                    event.preventDefault();
+                    toggleAnimation();
+                    break;
+                case 's':
+                case 'S':
+                    changeSpeed();
+                    break;
+            }
+        });
+
+        window.addEventListener('load', () => {
+            setTimeout(initBackground, 250);
+        });
+    </script>
+</body>
+
+</html>
