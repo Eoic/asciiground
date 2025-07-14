@@ -59,15 +59,11 @@ describe('ASCIIGround', () => {
 
         it('should throw error if canvas context is not available', () => {
             vi.spyOn(canvas, 'getContext').mockReturnValue(null);
-            
-            expect(() => {
-                new ASCIIGround(canvas, defaultOptions);
-            }).toThrow('Could not get 2D context from canvas');
+            expect(() => new ASCIIGround(canvas, defaultOptions)).toThrow('Could not get 2D context from the canvas.');
         });
 
         it('should use default values for optional options', () => {
-            new ASCIIGround(canvas, defaultOptions);
-            
+            new ASCIIGround(canvas, defaultOptions).init();
             expect(mockContext.font).toBe('12px monospace');
             expect(mockContext.textBaseline).toBe('top');
         });
@@ -81,51 +77,45 @@ describe('ASCIIGround', () => {
                 backgroundColor: '#ffffff',
             };
 
-            new ASCIIGround(canvas, customOptions);
+            new ASCIIGround(canvas, customOptions).init();
             expect(mockContext.font).toBe('16px courier');
         });
     });
 
     describe('start and stop methods', () => {
         it('should start animation', () => {
-            const ascii = new ASCIIGround(canvas, defaultOptions);
-            ascii.start();
-            
+            const ascii = new ASCIIGround(canvas, defaultOptions).init();
+            ascii.startAnimation();
             expect(mockRequestAnimationFrame).toHaveBeenCalled();
         });
 
         it('should not start animation if already running', () => {
-            const ascii = new ASCIIGround(canvas, defaultOptions);
-            ascii.start();
+            const ascii = new ASCIIGround(canvas, defaultOptions).init();
+            ascii.startAnimation();
             mockRequestAnimationFrame.mockClear();
-            ascii.start();
-            
-            expect(mockRequestAnimationFrame).not.toHaveBeenCalled();
+            expect(() => ascii.startAnimation()).toThrow('Animation is already running!');
         });
 
         it('should stop animation', () => {
-            const ascii = new ASCIIGround(canvas, defaultOptions);
-            ascii.start();
-            ascii.stop();
-            
+            const ascii = new ASCIIGround(canvas, defaultOptions).init();
+            ascii.startAnimation();
+            ascii.stopAnimation();
             expect(mockCancelAnimationFrame).toHaveBeenCalledWith(123);
         });
     });
 
     describe('updateOptions method', () => {
         it('should update options', () => {
-            const ascii = new ASCIIGround(canvas, defaultOptions);
+            const ascii = new ASCIIGround(canvas, defaultOptions).init();
             ascii.updateOptions({ speed: 0.05 });
-            
             expect(mockContext.measureText).toHaveBeenCalledWith('M');
         });
     });
 
     describe('resize method', () => {
         it('should resize canvas and recalculate grid', () => {
-            const ascii = new ASCIIGround(canvas, defaultOptions);
+            const ascii = new ASCIIGround(canvas, defaultOptions).init();
             ascii.resize(1000, 800);
-            
             expect(canvas.width).toBe(1000);
             expect(canvas.height).toBe(800);
         });
@@ -133,59 +123,34 @@ describe('ASCIIGround', () => {
 
     describe('animation patterns', () => {
         it('should handle perlin pattern', () => {
-            const ascii = new ASCIIGround(canvas, { ...defaultOptions, pattern: 'perlin' });
-            ascii.start();
-            
+            const ascii = new ASCIIGround(canvas, { ...defaultOptions, pattern: 'perlin' }).init();
+            ascii.startAnimation();
             expect(mockRequestAnimationFrame).toHaveBeenCalled();
         });
 
         it('should handle wave pattern', () => {
-            const ascii = new ASCIIGround(canvas, { ...defaultOptions, pattern: 'wave' });
-            ascii.start();
-            
+            const ascii = new ASCIIGround(canvas, { ...defaultOptions, pattern: 'wave' }).init();
+            ascii.startAnimation();
             expect(mockRequestAnimationFrame).toHaveBeenCalled();
         });
 
         it('should handle rain pattern', () => {
-            const ascii = new ASCIIGround(canvas, { ...defaultOptions, pattern: 'rain' });
-            ascii.start();
-            
+            const ascii = new ASCIIGround(canvas, { ...defaultOptions, pattern: 'rain' }).init();
+            ascii.startAnimation();
             expect(mockRequestAnimationFrame).toHaveBeenCalled();
         });
 
         it('should handle static pattern', () => {
-            const ascii = new ASCIIGround(canvas, { ...defaultOptions, pattern: 'static' });
-            ascii.start();
-            
+            const ascii = new ASCIIGround(canvas, { ...defaultOptions, pattern: 'static' }).init();
+            ascii.startAnimation();
             expect(mockRequestAnimationFrame).toHaveBeenCalled();
         });
     });
 
     describe('rendering and animation', () => {
-        it('should handle animated option set to false', () => {
-            const options: ASCIIGroundOptions = {
-                ...defaultOptions,
-                animated: false,
-            };
-
-            const ascii = new ASCIIGround(canvas, options);
-            expect(ascii).toBeInstanceOf(ASCIIGround);
-        });
-
-        it('should handle animated option set to true', () => {
-            const options: ASCIIGroundOptions = {
-                ...defaultOptions,
-                animated: true,
-            };
-
-            const ascii = new ASCIIGround(canvas, options);
-            expect(ascii).toBeInstanceOf(ASCIIGround);
-        });
-
         it('should call render methods when animation starts', () => {
-            const ascii = new ASCIIGround(canvas, defaultOptions);
-            ascii.start();
-
+            const ascii = new ASCIIGround(canvas, defaultOptions).init();
+            ascii.startAnimation();
             expect(mockRequestAnimationFrame).toHaveBeenCalled();
         });
 
@@ -199,8 +164,7 @@ describe('ASCIIGround', () => {
             testSizes.forEach(({ width, height }) => {
                 canvas.width = width;
                 canvas.height = height;
-                
-                const ascii = new ASCIIGround(canvas, defaultOptions);
+                const ascii = new ASCIIGround(canvas, defaultOptions).init();
                 expect(ascii).toBeInstanceOf(ASCIIGround);
             });
         });
@@ -211,7 +175,7 @@ describe('ASCIIGround', () => {
                 characters: [],
             };
 
-            const ascii = new ASCIIGround(canvas, options);
+            const ascii = new ASCIIGround(canvas, options).init();
             expect(ascii).toBeInstanceOf(ASCIIGround);
         });
     });
@@ -223,6 +187,7 @@ describe('createFullPageBackground', () => {
 
     beforeEach(() => {
         mockCanvas = document.createElement('canvas');
+
         mockContext = {
             fillStyle: '',
             font: '',
@@ -231,7 +196,7 @@ describe('createFullPageBackground', () => {
             fillText: vi.fn(),
             measureText: vi.fn(() => ({ width: 10 } as TextMetrics)),
         };
-        
+
         vi.spyOn(mockCanvas, 'getContext').mockReturnValue(mockContext as CanvasRenderingContext2D);
         vi.spyOn(document, 'createElement').mockReturnValue(mockCanvas);
         vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockCanvas);
@@ -251,10 +216,8 @@ describe('createFullPageBackground', () => {
             speed: 0.01,
         };
 
-        const ascii = createFullPageBackground(options);
-        
+        const ascii = createFullPageBackground(options).init();
         expect(ascii).toBeInstanceOf(ASCIIGround);
-        // Verify DOM manipulation occurred
         expect(mockCanvas).toBeDefined();
     });
 
@@ -266,7 +229,6 @@ describe('createFullPageBackground', () => {
         };
 
         createFullPageBackground(options);
-        
         expect(mockCanvas.style.position).toBe('fixed');
         expect(mockCanvas.style.top).toBe('0px');
         expect(mockCanvas.style.left).toBe('0px');
@@ -284,15 +246,11 @@ describe('createFullPageBackground', () => {
         };
 
         createFullPageBackground(options);
-        
-        // Simulate window resize
         Object.defineProperty(window, 'innerWidth', { value: 1600, writable: true });
         Object.defineProperty(window, 'innerHeight', { value: 900, writable: true });
-        
+    
         const resizeEvent = new Event('resize');
         window.dispatchEvent(resizeEvent);
-        
-        // Should update canvas dimensions
         expect(mockCanvas.width).toBe(1600);
         expect(mockCanvas.height).toBe(900);
     });

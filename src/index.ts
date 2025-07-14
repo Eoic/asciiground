@@ -9,8 +9,6 @@ export interface ASCIIGroundOptions {
     characters: string[]
     /** Animation speed multiplier. */
     speed: number
-    /** Whether the background is animated. */
-    animated?: boolean
     /** Font size in pixels. */
     fontSize?: number
     /** Font family. */
@@ -102,34 +100,35 @@ class PerlinNoise {
  * Main ASCIIGround class for creating backgrounds.
  */
 export class ASCIIGround {
-    private canvas: HTMLCanvasElement;
-    private ctx: CanvasRenderingContext2D;
-    private options: Required<ASCIIGroundOptions>;
-    private animationId: number | null = null;
-    private startTime: number = 0;
-    private perlin: PerlinNoise;
-    private cols: number = 0;
-    private rows: number = 0;
-    private charWidth: number = 0;
-    private charHeight: number = 0;
+    private _canvas: HTMLCanvasElement;
+    private _context: CanvasRenderingContext2D;
+    private _options: Required<ASCIIGroundOptions>;
+    private _animationId: number | null = null;
+    private _startTime: number = 0;
+    private _currentTime: number = performance.now();
+    private _perlin: PerlinNoise;
+    private _cols: number = 0;
+    private _rows: number = 0;
+    private _charWidth: number = 0;
+    private _charHeight: number = 0;
 
     /**
      * Check if the animation is currently running.
      */
     get isAnimating(): boolean {
-        return this.animationId !== null;
+        return this._animationId !== null;
     }
   
     constructor(canvas: HTMLCanvasElement, options: ASCIIGroundOptions) {
-        this.canvas = canvas;
-        const ctx = canvas.getContext('2d');
+        this._canvas = canvas;
+        const context = canvas.getContext('2d');
 
-        if (!ctx) 
-            throw new Error('Could not get 2D context from canvas.');
+        if (!context) 
+            throw new Error('Could not get 2D context from the canvas.');
     
-        this.ctx = ctx;
+        this._context = context;
     
-        this.options = {
+        this._options = {
             pattern: options.pattern,
             characters: options.characters,
             speed: options.speed,
@@ -137,34 +136,30 @@ export class ASCIIGround {
             fontFamily: options.fontFamily || 'monospace',
             color: options.color || '#00ff00',
             backgroundColor: options.backgroundColor || '#000000',
-            animated: options.animated !== undefined ? options.animated : true,
         };
     
-        this.perlin = new PerlinNoise();
-        this.setupCanvas();
+        this._perlin = new PerlinNoise();
     }
-  
-    private setupCanvas(): void {
-        // this.stop();
-        // this.start();
-        this.ctx.font = `${this.options.fontSize}px ${this.options.fontFamily}`;
-        this.ctx.textBaseline = 'top';
+
+    private configureCanvas(): void {
+        this._context.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
+        this._context.textBaseline = 'top';
     
         // Measure character dimensions.
-        const metrics = this.ctx.measureText('M');
-        this.charWidth = metrics.width;
-        this.charHeight = this.options.fontSize;
+        const metrics = this._context.measureText('M');
+        this._charWidth = metrics.width;
+        this._charHeight = this._options.fontSize;
     
         // Calculate grid dimensions.
-        this.cols = Math.floor(this.canvas.width / this.charWidth);
-        this.rows = Math.floor(this.canvas.height / this.charHeight);
+        this._cols = Math.floor(this._canvas.width / this._charWidth);
+        this._rows = Math.floor(this._canvas.height / this._charHeight);
     }
   
     private getNoiseFunction(): NoiseFunction {
-        switch (this.options.pattern) {
+        switch (this._options.pattern) {
             case 'perlin':
                 return (x: number, y: number, time: number) => {
-                    return this.perlin.noise(x * 0.1, y * 0.1 + time);
+                    return this._perlin.noise(x * 0.1, y * 0.1 + time);
                 };
       
             case 'wave':
@@ -186,70 +181,83 @@ export class ASCIIGround {
     }
   
     private render(time: number): void {
-        this.ctx.fillStyle = this.options.backgroundColor;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.fillStyle = this.options.color;
+        this._context.fillStyle = this._options.backgroundColor;
+        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+        this._context.fillStyle = this._options.color;
         const noiseFunction = this.getNoiseFunction();
-        const animationTime = (time - this.startTime) * this.options.speed;
+        const animationTime = (time - this._startTime) * this._options.speed;
     
-        for (let row = 0; row < this.rows; row++) {
-            for (let col = 0; col < this.cols; col++) {
+        for (let row = 0; row < this._rows; row++) {
+            for (let col = 0; col < this._cols; col++) {
                 const noiseValue = noiseFunction(col, row, animationTime);
 
                 // Map noise value (-1 to 1) to character index.
-                const normalizedValue = (noiseValue + 1) / 2; // Convert to 0-1 range
-                const charIndex = Math.floor(normalizedValue * this.options.characters.length);
-                const clampedIndex = Math.max(0, Math.min(charIndex, this.options.characters.length - 1));
-                const char = this.options.characters[clampedIndex];
-                const x = col * this.charWidth;
-                const y = row * this.charHeight;
-                this.ctx.fillText(char, x, y);
+                const normalizedValue = (noiseValue + 1) / 2;
+                const charIndex = Math.floor(normalizedValue * this._options.characters.length);
+                const clampedIndex = Math.max(0, Math.min(charIndex, this._options.characters.length - 1));
+                const char = this._options.characters[clampedIndex];
+                const x = col * this._charWidth;
+                const y = row * this._charHeight;
+                this._context.fillText(char, x, y);
             }
         }
+    }
+
+    /**
+     * Initialize the canvas and render the initial state.
+     */
+    init(): ASCIIGround {
+        this.configureCanvas();
+        this.render(this._currentTime);
+        return this;
     }
   
     /**
      * Start the animation.
      */
-    start(): void {
-        if (this.animationId !== null) 
-            return;
+    startAnimation(): void {
+        if (this._animationId !== null)
+            throw new Error('Animation is already running!');
     
-        this.startTime = performance.now();
+        this._startTime = performance.now();
     
         const animate = (time: number) => {
+            this._currentTime = time;
             this.render(time);
-            this.animationId = requestAnimationFrame(animate);
+            this._animationId = requestAnimationFrame(animate);
         };
     
-        this.animationId = requestAnimationFrame(animate);
+        this._animationId = requestAnimationFrame(animate);
     }
   
     /**
      * Stop the animation.
      */
-    stop(): void {
-        if (this.animationId !== null) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
+    stopAnimation(): void {
+        if (this._animationId !== null) {
+            cancelAnimationFrame(this._animationId);
+            this._animationId = null;
         }
     }
-  
+
     /**
      * Update animation options.
      */
     updateOptions(newOptions: Partial<ASCIIGroundOptions>): void {
-        this.options = { ...this.options, ...newOptions };
-        this.setupCanvas();
+        this._options = { ...this._options, ...newOptions };
+        this.init();
     }
   
     /**
      * Resize the canvas and recalculate grid.
      */
     resize(width: number, height: number): void {
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.setupCanvas();
+        this._canvas.width = width;
+        this._canvas.height = height;
+        this.configureCanvas();
+
+        if (!this.isAnimating)
+            this.render(this._currentTime);
     }
 }
 
