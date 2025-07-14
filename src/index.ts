@@ -4,7 +4,7 @@
 
 export interface ASCIIGroundOptions {
     /** Animation pattern type. */
-    pattern: 'perlin' | 'wave' | 'rain' | 'static'
+    pattern: 'perlin' | 'wave' | 'rain' | 'static' | 'japan-rain'
     /** ASCII characters to use for rendering (from lightest to darkest). */
     characters: string[]
     /** Animation speed multiplier. */
@@ -19,6 +19,21 @@ export interface ASCIIGroundOptions {
     color?: string
     /** Background color. */
     backgroundColor?: string
+
+    /** Direction of animation, if supported by the pattern. */
+    direction?: 'left' | 'right' | 'up' | 'down'
+    /** Horizontal wave amplitude (for wave pattern). */
+    amplitudeX?: number
+    /** Vertical wave amplitude (for wave pattern). */
+    amplitudeY?: number
+    /** Frequency of wave pattern. */
+    frequency?: number
+    /** Perlin noise scale factor. */
+    noiseScale?: number
+    /** Rain density (for rain/japan-rain patterns), 0-1. */
+    rainDensity?: number
+    /** Rain direction (for rain pattern). */
+    rainDirection?: 'vertical' | 'diagonal-left' | 'diagonal-right'
 }
 
 export interface NoiseFunction {
@@ -98,6 +113,25 @@ class PerlinNoise {
     }
 }
 
+interface JapanRainDrop {
+    col: number;
+    y: number;
+    speed: number;
+    chars: string[];
+    length: number;
+    age: number;
+}
+
+function randomJapaneseChar(): string {
+    const ranges = [
+        [0x30A0, 0x30FF], // Katakana
+        [0x3040, 0x309F], // Hiragana
+        [0x4E00, 0x4E80], // Some Kanji (short range for visual effect)
+    ];
+    const [start, end] = ranges[Math.floor(Math.random() * ranges.length)];
+    return String.fromCharCode(Math.floor(Math.random() * (end - start)) + start);
+}
+
 /**
  * Main ASCIIGround class for creating backgrounds.
  */
@@ -112,6 +146,9 @@ export class ASCIIGround {
     private rows: number = 0;
     private charWidth: number = 0;
     private charHeight: number = 0;
+    private japanRainDrops: JapanRainDrop[] = [];
+    private lastRainInit: number = 0;
+    private rainDropDensity: number = 0.9;
 
     /**
      * Check if the animation is currently running.
@@ -138,54 +175,182 @@ export class ASCIIGround {
             color: options.color || '#00ff00',
             backgroundColor: options.backgroundColor || '#000000',
             animated: options.animated !== undefined ? options.animated : true,
+            // new options with defaults
+            direction: options.direction || 'down',
+            amplitudeX: options.amplitudeX ?? 1,
+            amplitudeY: options.amplitudeY ?? 1,
+            frequency: options.frequency ?? 1,
+            noiseScale: options.noiseScale ?? 0.1,
+            rainDensity: options.rainDensity ?? 0.9,
+            rainDirection: options.rainDirection ?? 'vertical'
         };
     
+        this.rainDropDensity = this.options.rainDensity;
         this.perlin = new PerlinNoise();
         this.setupCanvas();
+        if (this.options.pattern === 'japan-rain') {
+            this.initJapanRain();
+        }
     }
   
     private setupCanvas(): void {
-        // this.stop();
-        // this.start();
         this.ctx.font = `${this.options.fontSize}px ${this.options.fontFamily}`;
         this.ctx.textBaseline = 'top';
     
         // Measure character dimensions.
-        const metrics = this.ctx.measureText('M');
+        const metrics = this.ctx.measureText('Ｍ'); // Fullwidth M for better width
         this.charWidth = metrics.width;
         this.charHeight = this.options.fontSize;
     
         // Calculate grid dimensions.
         this.cols = Math.floor(this.canvas.width / this.charWidth);
         this.rows = Math.floor(this.canvas.height / this.charHeight);
+
+        // For matrix rain, adjust drops
+        if (this.options.pattern === 'japan-rain') {
+            this.initJapanRain();
+        }
     }
-  
+
     private getNoiseFunction(): NoiseFunction {
+        const { noiseScale, direction, amplitudeX, amplitudeY, frequency, rainDirection } = this.options;
         switch (this.options.pattern) {
             case 'perlin':
                 return (x: number, y: number, time: number) => {
-                    return this.perlin.noise(x * 0.1, y * 0.1 + time);
+                    // Allow directionality by shifting axes
+                    let dx = x, dy = y;
+                    switch (direction) {
+                        case 'left':  dx = -x; break;
+                        case 'right': dx = x; break;
+                        case 'up':    dy = -y; break;
+                        case 'down':  dy = y; break;
+                    }
+                    return this.perlin.noise(dx * noiseScale, dy * noiseScale + time);
                 };
       
             case 'wave':
                 return (x: number, y: number, time: number) => {
-                    return Math.sin(x * 0.1 + time) * Math.cos(y * 0.1 + time * 0.5);
+                    let t = time * frequency;
+                    let _x = x, _y = y;
+                    switch (direction) {
+                        case 'left':  t = -t; break;
+                        case 'right': t = t; break;
+                        case 'up':    t = -t; break;
+                        case 'down':  t = t; break;
+                    }
+                    return (
+                        Math.sin(_x * 0.1 * amplitudeX + t) * Math.cos(_y * 0.1 * amplitudeY + t * 0.5)
+                    );
                 };
       
             case 'rain':
                 return (x: number, y: number, time: number) => {
-                    return Math.sin(y * 0.2 + time * 2) * Math.cos(x * 0.05);
+                    let angle = 0;
+                    switch (rainDirection) {
+                        case 'vertical':      angle = 0; break;
+                        case 'diagonal-left': angle = Math.PI / 4; break;
+                        case 'diagonal-right':angle = -Math.PI / 4; break;
+                    }
+                    // Move "rain" along a direction
+                    const dx = Math.cos(angle), dy = Math.sin(angle);
+                    return Math.sin((y * dy + x * dx) * 0.2 + time * 2) * Math.cos(x * 0.05);
                 };
       
             case 'static':
                 return () => Math.random() * 2 - 1;
-      
+
+            // 'japan-rain' handled elsewhere
             default:
                 return () => 0;
         }
     }
+
+    private initJapanRain(): void {
+        this.japanRainDrops = [];
+        this.rainDropDensity = this.options.rainDensity ?? 0.9;
+        for (let col = 0; col < this.cols; col++) {
+            if (Math.random() < this.rainDropDensity) {
+                const length = Math.floor(Math.random() * 20) + 8;
+                const chars = Array.from({ length }, () => randomJapaneseChar());
+                this.japanRainDrops.push({
+                    col,
+                    y: Math.floor(Math.random() * this.rows),
+                    speed: 0.5 + Math.random() * 1.2,
+                    chars,
+                    length,
+                    age: 0,
+                });
+            }
+        }
+        this.lastRainInit = performance.now();
+    }
+
+    private updateJapanRainDrops(time: number): void {
+        for (const drop of this.japanRainDrops) {
+            drop.y += drop.speed * this.options.speed;
+            drop.age += this.options.speed;
+            // Randomly change some chars for the "glitch" effect
+            if (Math.random() < 0.04) {
+                let idx = Math.floor(Math.random() * drop.length);
+                drop.chars[idx] = randomJapaneseChar();
+            }
+            // Reset drop if off screen
+            if (drop.y - drop.length > this.rows) {
+                drop.y = -Math.floor(Math.random() * 8);
+                drop.length = Math.floor(Math.random() * 20) + 8;
+                drop.chars = Array.from({ length: drop.length }, () => randomJapaneseChar());
+                drop.speed = 0.5 + Math.random() * 1.2;
+                drop.age = 0;
+            }
+        }
+        // If the canvas was resized, adjust drops
+        if (this.japanRainDrops.length < this.cols * this.rainDropDensity) {
+            for (let col = this.japanRainDrops.length; col < this.cols * this.rainDropDensity; col++) {
+                const length = Math.floor(Math.random() * 20) + 8;
+                const chars = Array.from({ length }, () => randomJapaneseChar());
+                this.japanRainDrops.push({
+                    col: col % this.cols,
+                    y: Math.floor(Math.random() * this.rows),
+                    speed: 0.5 + Math.random() * 1.2,
+                    chars,
+                    length,
+                    age: 0,
+                });
+            }
+        }
+    }
+
+    private renderJapanRain(): void {
+        // translucent background to give trailing effect
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        for (const drop of this.japanRainDrops) {
+            for (let i = 0; i < drop.length; i++) {
+                const char = drop.chars[i];
+                const x = drop.col * this.charWidth;
+                const y = (Math.floor(drop.y) - i) * this.charHeight;
+                if (y < 0 || y > this.canvas.height) continue;
+                if (i === 0) {
+                    // Leading char brighter
+                    this.ctx.fillStyle = '#ccffcc';
+                } else if (i < 3) {
+                    this.ctx.fillStyle = this.options.color || '#00ff00';
+                } else {
+                    this.ctx.fillStyle = 'rgba(0,255,0,0.7)';
+                }
+                this.ctx.fillText(char, x, y);
+            }
+        }
+    }
   
     private render(time: number): void {
+        if (this.options.pattern === 'japan-rain') {
+            this.updateJapanRainDrops(time);
+            this.renderJapanRain();
+            return;
+        }
+
         this.ctx.fillStyle = this.options.backgroundColor;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.fillStyle = this.options.color;
@@ -239,8 +404,16 @@ export class ASCIIGround {
      * Update animation options.
      */
     updateOptions(newOptions: Partial<ASCIIGroundOptions>): void {
+        const prevPattern = this.options.pattern;
         this.options = { ...this.options, ...newOptions };
+        // Apply rainDensity if updated
+        if (typeof newOptions.rainDensity === 'number') {
+            this.rainDropDensity = newOptions.rainDensity;
+        }
         this.setupCanvas();
+        if (this.options.pattern === 'japan-rain' && prevPattern !== 'japan-rain') {
+            this.initJapanRain();
+        }
     }
   
     /**
