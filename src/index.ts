@@ -147,7 +147,7 @@ export class ASCIIGround {
     private charWidth: number = 0;
     private charHeight: number = 0;
     private japanRainDrops: JapanRainDrop[] = [];
-    private lastRainInit: number = 0;
+    // Removed unused lastRainInit
     private rainDropDensity: number = 0.9;
 
     /**
@@ -282,10 +282,11 @@ export class ASCIIGround {
                 });
             }
         }
-        this.lastRainInit = performance.now();
+        // Removed this.lastRainInit = performance.now(); as lastRainInit is not used
     }
 
-    private updateJapanRainDrops(time: number): void {
+    // Remove unused parameter 'time' from updateJapanRainDrops
+    private updateJapanRainDrops(): void {
         for (const drop of this.japanRainDrops) {
             drop.y += drop.speed * this.options.speed;
             drop.age += this.options.speed;
@@ -346,7 +347,7 @@ export class ASCIIGround {
   
     private render(time: number): void {
         if (this.options.pattern === 'japan-rain') {
-            this.updateJapanRainDrops(time);
+            this.updateJapanRainDrops();
             this.renderJapanRain();
             return;
         }
