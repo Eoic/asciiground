@@ -1,48 +1,58 @@
-class m {
+class u {
   permutation;
-  constructor(t = 0) {
-    this.permutation = this.generatePermutation(t);
+  constructor(i = 0) {
+    this.permutation = this.generatePermutation(i);
   }
-  generatePermutation(t) {
-    const i = [];
-    for (let n = 0; n < 256; n++)
-      i[n] = n;
-    for (let n = 255; n > 0; n--) {
-      const s = Math.floor(t * (n + 1) % (n + 1));
-      [i[n], i[s]] = [i[s], i[n]], t = t * 16807 % 2147483647;
+  generatePermutation(i) {
+    const t = [];
+    for (let a = 0; a < 256; a++) t[a] = a;
+    for (let a = 255; a > 0; a--) {
+      const e = Math.floor(i * (a + 1) % (a + 1));
+      [t[a], t[e]] = [t[e], t[a]], i = i * 16807 % 2147483647;
     }
-    return [...i, ...i];
+    return [...t, ...t];
   }
-  fade(t) {
-    return t * t * t * (t * (t * 6 - 15) + 10);
+  fade(i) {
+    return i * i * i * (i * (i * 6 - 15) + 10);
   }
-  lerp(t, i, n) {
-    return t + n * (i - t);
+  lerp(i, t, a) {
+    return i + a * (t - i);
   }
-  grad(t, i, n) {
-    const s = t & 3, e = s < 2 ? i : n, o = s < 2 ? n : i;
-    return ((s & 1) === 0 ? e : -e) + ((s & 2) === 0 ? o : -o);
+  grad(i, t, a) {
+    const e = i & 3, s = e < 2 ? t : a, l = e < 2 ? a : t;
+    return ((e & 1) === 0 ? s : -s) + ((e & 2) === 0 ? l : -l);
   }
-  noise(t, i) {
-    const n = Math.floor(t) & 255, s = Math.floor(i) & 255;
-    t -= Math.floor(t), i -= Math.floor(i);
-    const e = this.fade(t), o = this.fade(i), a = this.permutation[n] + s, c = this.permutation[a], l = this.permutation[a + 1], r = this.permutation[n + 1] + s, d = this.permutation[r], u = this.permutation[r + 1];
+  noise(i, t) {
+    const a = Math.floor(i) & 255, e = Math.floor(t) & 255;
+    i -= Math.floor(i), t -= Math.floor(t);
+    const s = this.fade(i), l = this.fade(t), r = this.permutation[a] + e, o = this.permutation[r], c = this.permutation[r + 1], n = this.permutation[a + 1] + e, h = this.permutation[n], d = this.permutation[n + 1];
     return this.lerp(
       this.lerp(
-        this.grad(this.permutation[c], t, i),
-        this.grad(this.permutation[d], t - 1, i),
-        e
+        this.grad(this.permutation[o], i, t),
+        this.grad(this.permutation[h], i - 1, t),
+        s
       ),
       this.lerp(
-        this.grad(this.permutation[l], t, i - 1),
-        this.grad(this.permutation[u], t - 1, i - 1),
-        e
+        this.grad(this.permutation[c], i, t - 1),
+        this.grad(this.permutation[d], i - 1, t - 1),
+        s
       ),
-      o
+      l
     );
   }
 }
-class p {
+function f() {
+  const p = [
+    [12448, 12543],
+    // Katakana
+    [12352, 12447],
+    // Hiragana
+    [19968, 20096]
+    // Some Kanji (short range for visual effect)
+  ], [i, t] = p[Math.floor(Math.random() * p.length)];
+  return String.fromCharCode(Math.floor(Math.random() * (t - i)) + i);
+}
+class m {
   canvas;
   ctx;
   options;
@@ -53,97 +63,188 @@ class p {
   rows = 0;
   charWidth = 0;
   charHeight = 0;
-  /**
-   * Check if the animation is currently running.
-   */
+  japanRainDrops = [];
+  rainDropDensity = 0.9;
   get isAnimating() {
     return this.animationId !== null;
   }
-  constructor(t, i) {
-    this.canvas = t;
-    const n = t.getContext("2d");
-    if (!n)
-      throw new Error("Could not get 2D context from canvas.");
-    this.ctx = n, this.options = {
-      pattern: i.pattern,
-      characters: i.characters,
-      speed: i.speed,
-      fontSize: i.fontSize || 12,
-      fontFamily: i.fontFamily || "monospace",
-      color: i.color || "#00ff00",
-      backgroundColor: i.backgroundColor || "#000000",
-      animated: i.animated !== void 0 ? i.animated : !0
-    }, this.perlin = new m(), this.setupCanvas();
+  constructor(i, t) {
+    this.canvas = i;
+    const a = i.getContext("2d");
+    if (!a) throw new Error("Could not get 2D context from canvas.");
+    this.ctx = a, this.options = {
+      pattern: t.pattern,
+      characters: t.characters,
+      speed: t.speed,
+      fontSize: t.fontSize || 12,
+      fontFamily: t.fontFamily || "monospace",
+      color: t.color || "#00ff00",
+      backgroundColor: t.backgroundColor || "#000000",
+      animated: t.animated !== void 0 ? t.animated : !0,
+      direction: t.direction || "down",
+      amplitudeX: t.amplitudeX ?? 1,
+      amplitudeY: t.amplitudeY ?? 1,
+      frequency: t.frequency ?? 1,
+      noiseScale: t.noiseScale ?? 0.1,
+      rainDensity: t.rainDensity ?? 0.9,
+      rainDirection: t.rainDirection ?? "vertical"
+    }, this.rainDropDensity = this.options.rainDensity, this.perlin = new u(), this.setupCanvas(), this.options.pattern === "japan-rain" && this.initJapanRain();
   }
   setupCanvas() {
     this.ctx.font = `${this.options.fontSize}px ${this.options.fontFamily}`, this.ctx.textBaseline = "top";
-    const t = this.ctx.measureText("M");
-    this.charWidth = t.width, this.charHeight = this.options.fontSize, this.cols = Math.floor(this.canvas.width / this.charWidth), this.rows = Math.floor(this.canvas.height / this.charHeight);
+    const i = this.ctx.measureText("Ｍ");
+    this.charWidth = i.width, this.charHeight = this.options.fontSize, this.cols = Math.floor(this.canvas.width / this.charWidth), this.rows = Math.floor(this.canvas.height / this.charHeight);
   }
   getNoiseFunction() {
+    const { noiseScale: i, direction: t, amplitudeX: a, amplitudeY: e, frequency: s, rainDirection: l } = this.options;
     switch (this.options.pattern) {
       case "perlin":
-        return (t, i, n) => this.perlin.noise(t * 0.1, i * 0.1 + n);
+        return (r, o, c) => {
+          let n = r, h = o;
+          switch (t) {
+            case "left":
+              n = -r;
+              break;
+            case "right":
+              n = r;
+              break;
+            case "up":
+              h = -o;
+              break;
+            case "down":
+              h = o;
+              break;
+          }
+          return this.perlin.noise(n * i, h * i + c);
+        };
       case "wave":
-        return (t, i, n) => Math.sin(t * 0.1 + n) * Math.cos(i * 0.1 + n * 0.5);
+        return (r, o, c) => {
+          let n = c * s, h = r, d = o;
+          switch (t) {
+            case "left":
+              n = -n;
+              break;
+            case "right":
+              n = n;
+              break;
+            case "up":
+              n = -n;
+              break;
+            case "down":
+              n = n;
+              break;
+          }
+          return Math.sin(h * 0.1 * a + n) * Math.cos(d * 0.1 * e + n * 0.5);
+        };
       case "rain":
-        return (t, i, n) => Math.sin(i * 0.2 + n * 2) * Math.cos(t * 0.05);
+        return (r, o, c) => {
+          let n = 0;
+          switch (l) {
+            case "vertical":
+              n = 0;
+              break;
+            case "diagonal-left":
+              n = Math.PI / 4;
+              break;
+            case "diagonal-right":
+              n = -Math.PI / 4;
+              break;
+          }
+          const h = Math.cos(n), d = Math.sin(n);
+          return Math.sin((o * d + r * h) * 0.2 + c * 2) * Math.cos(r * 0.05);
+        };
       case "static":
         return () => Math.random() * 2 - 1;
       default:
         return () => 0;
     }
   }
-  render(t) {
-    this.ctx.fillStyle = this.options.backgroundColor, this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height), this.ctx.fillStyle = this.options.color;
-    const i = this.getNoiseFunction(), n = (t - this.startTime) * this.options.speed;
-    for (let s = 0; s < this.rows; s++)
-      for (let e = 0; e < this.cols; e++) {
-        const a = (i(e, s, n) + 1) / 2, c = Math.floor(a * this.options.characters.length), l = Math.max(0, Math.min(c, this.options.characters.length - 1)), r = this.options.characters[l], d = e * this.charWidth, u = s * this.charHeight;
-        this.ctx.fillText(r, d, u);
+  initJapanRain() {
+    this.japanRainDrops = [], this.rainDropDensity = this.options.rainDensity ?? 0.9;
+    for (let i = 0; i < this.cols; i++)
+      if (Math.random() < this.rainDropDensity) {
+        const t = Math.floor(Math.random() * 20) + 8, a = Array.from({ length: t }, () => f());
+        this.japanRainDrops.push({
+          col: i,
+          y: Math.floor(Math.random() * this.rows),
+          speed: 0.5 + Math.random() * 1.2,
+          chars: a,
+          length: t,
+          age: 0
+        });
       }
   }
-  /**
-   * Start the animation.
-   */
-  start() {
-    if (this.animationId !== null)
-      return;
-    this.startTime = performance.now();
-    const t = (i) => {
-      this.render(i), this.animationId = requestAnimationFrame(t);
-    };
-    this.animationId = requestAnimationFrame(t);
+  updateJapanRainDrops() {
+    for (const t of this.japanRainDrops) {
+      if (t.y += t.speed * this.options.speed, t.age += this.options.speed, Math.random() < 0.04) {
+        let a = Math.floor(Math.random() * t.length);
+        t.chars[a] = f();
+      }
+      t.y - t.length > this.rows && (t.y = -Math.floor(Math.random() * 8), t.length = Math.floor(Math.random() * 20) + 8, t.chars = Array.from({ length: t.length }, () => f()), t.speed = 0.5 + Math.random() * 1.2, t.age = 0);
+    }
+    const i = Math.floor(this.cols * this.rainDropDensity);
+    for (; this.japanRainDrops.length < i; ) {
+      const t = this.japanRainDrops.length % this.cols, a = Math.floor(Math.random() * 20) + 8, e = Array.from({ length: a }, () => f());
+      this.japanRainDrops.push({
+        col: t,
+        y: Math.floor(Math.random() * this.rows),
+        speed: 0.5 + Math.random() * 1.2,
+        chars: e,
+        length: a,
+        age: 0
+      });
+    }
+    this.japanRainDrops.length > i && (this.japanRainDrops.length = i);
   }
-  /**
-   * Stop the animation.
-   */
+  renderJapanRain() {
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.2)", this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    for (const i of this.japanRainDrops)
+      for (let t = 0; t < i.length; t++) {
+        const a = i.chars[t], e = i.col * this.charWidth, s = (Math.floor(i.y) - t) * this.charHeight;
+        s < 0 || s > this.canvas.height || (t === 0 ? this.ctx.fillStyle = "#ccffcc" : t < 3 ? this.ctx.fillStyle = this.options.color || "#00ff00" : this.ctx.fillStyle = "rgba(0,255,0,0.7)", this.ctx.fillText(a, e, s));
+      }
+  }
+  render(i) {
+    if (this.options.pattern === "japan-rain") {
+      this.updateJapanRainDrops(), this.renderJapanRain();
+      return;
+    }
+    this.ctx.fillStyle = this.options.backgroundColor, this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height), this.ctx.fillStyle = this.options.color;
+    const t = this.getNoiseFunction(), a = (i - this.startTime) / 1e3 * this.options.speed;
+    for (let e = 0; e < this.rows; e++)
+      for (let s = 0; s < this.cols; s++) {
+        const r = (t(s, e, a) + 1) / 2, o = Math.floor(r * this.options.characters.length), c = Math.max(0, Math.min(o, this.options.characters.length - 1)), n = this.options.characters[c], h = s * this.charWidth, d = e * this.charHeight;
+        this.ctx.fillText(n, h, d);
+      }
+  }
+  start() {
+    if (this.animationId !== null) return;
+    this.startTime = performance.now();
+    const i = (t) => {
+      this.render(t), this.animationId = requestAnimationFrame(i);
+    };
+    this.animationId = requestAnimationFrame(i);
+  }
   stop() {
     this.animationId !== null && (cancelAnimationFrame(this.animationId), this.animationId = null);
   }
-  /**
-   * Update animation options.
-   */
-  updateOptions(t) {
-    this.options = { ...this.options, ...t }, this.setupCanvas();
+  updateOptions(i) {
+    this.options = { ...this.options, ...i }, typeof i.rainDensity == "number" && (this.rainDropDensity = i.rainDensity), this.setupCanvas(), this.options.pattern === "japan-rain" && this.initJapanRain();
   }
-  /**
-   * Resize the canvas and recalculate grid.
-   */
-  resize(t, i) {
-    this.canvas.width = t, this.canvas.height = i, this.setupCanvas();
+  resize(i, t) {
+    this.canvas.width = i, this.canvas.height = t, this.setupCanvas(), this.options.pattern === "japan-rain" && this.initJapanRain();
   }
 }
-function f(h) {
-  const t = document.createElement("canvas");
-  t.style.position = "fixed", t.style.top = "0", t.style.left = "0", t.style.width = "100%", t.style.height = "100%", t.style.zIndex = "-1", t.style.pointerEvents = "none", t.width = window.innerWidth, t.height = window.innerHeight, document.body.appendChild(t);
-  const i = new p(t, h), n = () => {
-    t.width = window.innerWidth, t.height = window.innerHeight, i.resize(t.width, t.height);
+function g(p) {
+  const i = document.createElement("canvas");
+  i.style.position = "fixed", i.style.top = "0", i.style.left = "0", i.style.width = "100%", i.style.height = "100%", i.style.zIndex = "-1", i.style.pointerEvents = "none", i.width = window.innerWidth, i.height = window.innerHeight, document.body.appendChild(i);
+  const t = new m(i, p), a = () => {
+    i.width = window.innerWidth, i.height = window.innerHeight, t.resize(i.width, i.height);
   };
-  return window.addEventListener("resize", n), i;
+  return window.addEventListener("resize", a), t;
 }
 export {
-  p as ASCIIGround,
-  f as createFullPageBackground,
-  p as default
+  m as ASCIIGround,
+  g as createFullPageBackground,
+  m as default
 };
