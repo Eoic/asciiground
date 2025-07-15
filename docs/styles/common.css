@@ -113,6 +113,10 @@ body {
     text-align: center;
 }
 
+.btn-fluid {
+    width: 100%;
+}
+
 .btn:hover {
     transform: translateY(-2px) scale(1.02);
 }
@@ -219,6 +223,11 @@ body {
 
 .delay-6 {
     animation-delay: 0.6s;
+}
+
+/* Formatting */
+.hidden {
+    display: none !important;
 }
 
 /* Responsive breakpoints */

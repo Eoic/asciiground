@@ -4,27 +4,251 @@ body {
 
 .controls {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: 0;
+    left: 0;
     z-index: 1000;
     padding: 20px;
+    max-width: 600px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    grid-template-rows: auto;
 }
 
 .controls h2 {
     margin-top: 0;
     color: #f5f5f5;
     font-size: 1.2rem;
+    grid-column: 1 / -1;
+}
+
+.controls label {
+    display: block;
+    margin-bottom: 16px;
+}
+
+.controls label span {
+    display: block;
+    margin-bottom: 6px;
+    color: #f5f5f5;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.controls label.row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.controls label.row span {
+    margin-bottom: 0;
+    flex-shrink: 0;
+    min-width: 120px;
+}
+
+/* Form input styling */
+.controls input[type="text"],
+.controls input[type="number"],
+.controls select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #f5f5f5;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    backdrop-filter: blur(10px);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.controls input[type="text"]::placeholder,
+.controls input[type="number"]::placeholder {
+    color: rgba(245, 245, 245, 0.4);
+}
+
+.controls input[type="text"]:focus,
+.controls input[type="number"]:focus,
+.controls select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.controls input[type="text"]:hover,
+.controls input[type="number"]:hover,
+.controls select:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Color input styling */
+.controls input[type="color"] {
+    width: 100%;
+    height: 40px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.controls input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.controls input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 6px;
+}
+
+.controls input[type="color"]::-moz-color-swatch {
+    border: none;
+    border-radius: 6px;
+}
+
+.controls input[type="color"]:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.controls input[type="color"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+/* Select dropdown styling */
+.controls select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23f5f5f5' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+.controls select option {
+    background: #292929;
+    color: #f5f5f5;
+    padding: 8px;
+}
+
+/* Custom scrollbar styling */
+.controls::-webkit-scrollbar {
+    width: 6px;
+}
+
+.controls::-webkit-scrollbar-track {
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.controls::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: rgba(102, 126, 234, 0.6);
+    transition: background 0.3s ease;
+}
+
+.controls::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.8);
+}
+
+/* Locked state styling */
+.controls input.locked,
+.controls select.locked {
+    opacity: 0.5;
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.controls label.locked span {
+    opacity: 0.5;
+}
+
+/* Toggle switch styling */
+.controls .toggle-label {
+    grid-column: 1 / -1;
+}
+
+.controls .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 55px;
+    height: 35px;
+    margin-top: 6px;
+}
+
+.controls .toggle-switch input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.controls .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 28px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.controls .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #f5f5f5;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.controls .toggle-switch input:checked+.toggle-slider {
+    background: rgba(102, 126, 234, 0.6);
+    border-color: #667eea;
+}
+
+.controls .toggle-switch input:checked+.toggle-slider:before {
+    transform: translateX(calc(100% + 5px)) translateY(-50%);
+    background: #ffffff;
+}
+
+.controls .toggle-switch:hover .toggle-slider {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.controls .toggle-switch input:checked:hover+.toggle-slider {
+    background: rgba(102, 126, 234, 0.8);
+}
+
+.controls .toggle-switch input:focus+.toggle-slider {
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
 .controls button {
     padding: 8px 16px;
     margin: 4px;
     font-size: 0.9rem;
-}
-
-.controls button.active {
-    background: linear-gradient(135deg, #0d7377 0%, #14a085 100%);
-    box-shadow: 0 4px 14px rgba(13, 115, 119, 0.4);
+    margin-top: 16px;
+    grid-column: 1 / -1;
 }
 
 .info {
@@ -67,8 +291,6 @@ body {
     gap: 0.5rem;
 }
 
-
-
 .header p {
     margin: 5px 0 0 0;
     font-size: 0.8rem;
@@ -90,16 +312,58 @@ canvas {
     z-index: 2000;
 }
 
+.locked {
+    opacity: 0.5;
+    pointer-events: none;
+}
 
+@media (max-width: 1024px) {
+    .controls {
+        max-width: 500px;
+    }
+}
 
 @media (max-width: 768px) {
     .controls {
-        max-width: 350px;
+        max-width: 400px;
         padding: 15px;
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .controls h2 {
         font-size: 1.1rem;
+    }
+
+    .controls label {
+        margin-bottom: 14px;
+    }
+
+    .controls label span {
+        font-size: 0.85rem;
+    }
+
+    .controls input[type="text"],
+    .controls input[type="number"],
+    .controls select {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+
+    .controls input[type="color"] {
+        height: 35px;
+    }
+
+    .controls .toggle-slider:before {
+        /* height: 18px; */
+        /* width: 18px; */
+        left: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .controls .toggle-switch input:checked+.toggle-slider:before {
+        transform: translateX(calc(100% + 7.5px)) translateY(-50%);
     }
 
     .controls button {
@@ -131,10 +395,47 @@ canvas {
 
 @media (max-width: 480px) {
     .controls {
-        top: 10px;
-        left: 10px;
         padding: 12px;
         max-width: calc(100vw - 40px);
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .controls label {
+        margin-bottom: 12px;
+    }
+
+    .controls label.row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .controls label.row span {
+        min-width: auto;
+        margin-bottom: 4px;
+    }
+
+    .controls input[type="text"],
+    .controls input[type="number"],
+    .controls select {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+
+    .controls input[type="color"] {
+        height: 32px;
+        align-self: flex-start;
+    }
+
+    .controls .toggle-slider:before {
+        left: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .controls .toggle-switch input:checked+.toggle-slider:before {
+        transform: translateX(calc(100% + 5px)) translateY(-50%);
     }
 
     .controls button {

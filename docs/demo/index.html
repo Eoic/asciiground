@@ -13,43 +13,118 @@
 </head>
 
 <body>
-    <div class="loading gradient-text" id="loading">Loading ASCIIGround...</div>
+    <div class="loading gradient-text" id="loading"> Loading ASCIIGround... </div>
 
     <div class="header glass">
         <h1 class="gradient-text">
             <span class="terminal-symbol">></span>
             ASCIIGround
         </h1>
-        <p>Live demo from CDN</p>
     </div>
 
-    <div class="controls glass" style="display: none;" id="controls">
+    <form class="controls glass hidden" id="controls">
         <h2 class="gradient-text">Controls</h2>
 
-        <div>
-            <button class="btn btn-primary" onclick="setPattern('perlin')" id="btn-perlin">Perlin Noise</button>
-            <button class="btn btn-primary" onclick="setPattern('wave')" id="btn-wave">Waves</button>
-            <button class="btn btn-primary" onclick="setPattern('rain')" id="btn-rain">Rain</button>
-            <button class="btn btn-primary" onclick="setPattern('static')" id="btn-static">Static</button>
-        </div>
+        <label>
+            <span> Pattern </span>
 
-        <div style="margin-top: 10px;">
-            <button class="btn btn-primary" onclick="toggleAnimation()" id="btn-toggle">Start animation</button>
-            <button class="btn btn-primary" onclick="changeSpeed(event)" id="btn-speed">Change speed (0.001)</button>
-        </div>
-    </div>
+            <select id="pattern">
+                <option value="perlin">Perlin Noise</option>
+                <option value="wave">Wave</option>
+                <option value="rain">Rain</option>
+                <option value="static">Static</option>
+                <option value="japan-rain">Japan Rain</option>
+            </select>
+        </label>
 
-    <div class="info glass" style="display: none;" id="info">
-        <h3 class="gradient-text">Current settings</h3>
-        <p>Pattern: <span id="current-pattern">perlin</span></p>
-        <p>Speed: <span id="current-speed">0.001</span></p>
-        <p>Characters: <span id="current-chars">8</span></p>
-        <p>FPS: <span id="current-fps">~60</span></p>
-    </div>
+        <label id="characters-label">
+            <span> Characters (comma-separated) </span>
+            <input type="text" id="characters" value=". ,: ; + * # @">
+        </label>
+
+        <label>
+            <span> Speed </span>
+            <input type="number" id="speed" step="0.001" min="0.001" value="0.01">
+        </label>
+
+        <label>
+            <span> Font size </span>
+            <input type="number" id="fontSize" value="12">
+        </label>
+
+        <label>
+            <span> Font family </span>
+            <input type="text" id="fontFamily" value="monospace">
+        </label>
+
+        <label>
+            <span> Text color </span>
+            <input type="color" id="color" value="#00ff00">
+        </label>
+
+        <label>
+            <span> Background color </span>
+            <input type="color" id="backgroundColor" value="#000000">
+        </label>
+
+        <label>
+            <span> Direction </span>
+
+            <select id="direction">
+                <option value="down"> Down </option>
+                <option value="up"> Up </option>
+                <option value="left"> Left </option>
+                <option value="right"> Right </option>
+            </select>
+        </label>
+
+        <label>
+            <span> Amplitude X (wave) </span>
+            <input type="number" id="amplitudeX" value="1" step="0.1">
+        </label>
+
+        <label>
+            <span> Amplitude Y (wave) </span>
+            <input type="number" id="amplitudeY" value="1" step="0.1">
+        </label>
+
+        <label>
+            <span> Frequency (wave) </span>
+            <input type="number" id="frequency" value="1" step="0.1">
+        </label>
+
+        <label>
+            <span> Noise scale (perlin) </span>
+            <input type="number" id="noiseScale" value="0.1" step="0.01">
+        </label>
+
+        <label>
+            <span> Rain density (rain/japan-rain, 0-1) </span>
+            <input type="number" id="rainDensity" min="0" max="1" step="0.01" value="0.9">
+        </label>
+
+        <label>
+            <span> Rain direction (rain) </span>
+
+            <select id="rainDirection">
+                <option value="vertical">Vertical</option>
+                <option value="diagonal-left">Diagonal Left</option>
+                <option value="diagonal-right">Diagonal Right</option>
+            </select>
+        </label>
+
+        <label class="toggle-label">
+            <span> Animation </span>
+            <div class="toggle-switch">
+                <input type="checkbox" id="toggleBtn" checked>
+                <span class="toggle-slider"></span>
+            </div>
+        </label>
+    </form>
 
     <canvas id="background-canvas"></canvas>
-    <!-- <script src="https://unpkg.com/asciiground@latest/dist/asciiground.umd.js"></script> -->
     <script src="../../dist/asciiground.umd.js"></script>
+    <!-- <script src="https://unpkg.com/asciiground@latest/dist/asciiground.umd.js"></script> -->
 
     <script>
         let ascii;
@@ -67,6 +142,10 @@
             const canvas = document.getElementById('background-canvas');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            const options = getOptionsFromInputs();
+
+            if (options.pattern === 'japan-rain')
+                options.characters = ['japan'];
 
             try {
                 ascii = new ASCIIGround.default(canvas, {
@@ -79,16 +158,62 @@
                 });
 
                 ascii.init();
+                setInputsFromOptions(options);
                 updateInfo();
 
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('controls').style.display = 'block';
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('controls').classList.remove('hidden');
                 document.getElementById('info').style.display = 'block';
-                updateActiveButton();
             } catch (error) {
                 console.error('Failed to initialize ASCIIGround:', error);
                 document.getElementById('loading').textContent = 'Failed to load ASCIIGround library.';
             }
+        }
+
+        function getOptionsFromInputs() {
+            let pattern = document.getElementById('pattern').value;
+            let charactersInput = document.getElementById('characters').value;
+            let characters = charactersInput.split(',').map(s => s.trim()).filter(Boolean);
+
+            if (pattern === "japan-rain")
+                characters = ['japan'];
+
+            return {
+                pattern: pattern,
+                characters: characters,
+                speed: parseFloat(document.getElementById('speed').value),
+                fontSize: parseInt(document.getElementById('fontSize').value),
+                fontFamily: document.getElementById('fontFamily').value,
+                color: document.getElementById('color').value,
+                backgroundColor: document.getElementById('backgroundColor').value,
+                direction: document.getElementById('direction').value,
+                amplitudeX: parseFloat(document.getElementById('amplitudeX').value),
+                amplitudeY: parseFloat(document.getElementById('amplitudeY').value),
+                frequency: parseFloat(document.getElementById('frequency').value),
+                noiseScale: parseFloat(document.getElementById('noiseScale').value),
+                rainDensity: parseFloat(document.getElementById('rainDensity').value),
+                rainDirection: document.getElementById('rainDirection').value
+            };
+        }
+
+        function setInputsFromOptions(opts) {
+            document.getElementById('pattern').value = opts.pattern;
+
+            if (opts.pattern !== 'japan-rain')
+                document.getElementById('characters').value = opts.characters.join(', ');
+
+            document.getElementById('speed').value = opts.speed;
+            document.getElementById('fontSize').value = opts.fontSize;
+            document.getElementById('fontFamily').value = opts.fontFamily;
+            document.getElementById('color').value = opts.color;
+            document.getElementById('backgroundColor').value = opts.backgroundColor;
+            document.getElementById('direction').value = opts.direction;
+            document.getElementById('amplitudeX').value = opts.amplitudeX;
+            document.getElementById('amplitudeY').value = opts.amplitudeY;
+            document.getElementById('frequency').value = opts.frequency;
+            document.getElementById('noiseScale').value = opts.noiseScale;
+            document.getElementById('rainDensity').value = opts.rainDensity;
+            document.getElementById('rainDirection').value = opts.rainDirection;
         }
 
         function setPattern(pattern) {
@@ -109,9 +234,16 @@
             if (!ascii)
                 return;
 
-            ascii.isAnimating ? ascii.stopAnimation() : ascii.startAnimation();
+            const toggleBtn = document.getElementById('toggleBtn');
+            const isChecked = toggleBtn.checked;
+
+            if (isChecked && !ascii.isAnimating) {
+                ascii.startAnimation();
+            } else if (!isChecked && ascii.isAnimating) {
+                ascii.stopAnimation();
+            }
+
             setPattern(currentPatternName);
-            document.getElementById('btn-toggle').textContent = ascii.isAnimating ? 'Stop animation' : 'Start animation';
         }
 
         function changeSpeed(event) {
@@ -128,11 +260,69 @@
         }
 
         function updateInfo() {
-            const chars = ascii?.options?.characters?.length || 8;
+            // const opts = getOptionsFromInputs();
+            // let displayOpts = { ...opts };
 
-            document.getElementById('current-pattern').textContent = currentPatternName;
-            document.getElementById('current-speed').textContent = `${currentSpeed}`;
-            document.getElementById('current-chars').textContent = chars;
+            // if (opts.pattern === 'japan-rain') {
+            //     displayOpts.characters = "Japanese (auto)";
+            // } else {
+            //     displayOpts.characters = opts.characters.join(', ');
+            // }
+
+            // const info = Object.entries(displayOpts)
+            //     .map(([k, v]) => `<strong>${k}:</strong> ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+            //     .join('<br>');
+
+            // document.getElementById('current-settings').innerHTML = info;
+        }
+
+        function applyOptions() {
+            const options = getOptionsFromInputs();
+            console.log('Applying options:', options);
+
+            if (ascii) {
+                const prevPattern = ascii.options?.pattern;
+
+                if (options.pattern !== prevPattern) {
+                    ascii.stopAnimation();
+                    ascii = null;
+                    setTimeout(initBackground, 50);
+                    return;
+                }
+
+                ascii.updateOptions(options);
+
+                if (options.animated && !isAnimating) {
+                    ascii.startAnimation();
+                    isAnimating = true;
+                } else if (!options.animated && isAnimating) {
+                    ascii.stopAnimation();
+                    isAnimating = false;
+                }
+
+                updateInfo();
+            }
+        }
+
+        function lockInputsForJapanRain(isJapanRain) {
+            const charactersInput = document.getElementById('characters');
+            const charactersLabel = document.getElementById('characters-label');
+
+            if (isJapanRain) {
+                charactersInput.classList.add('locked');
+                charactersInput.readOnly = true;
+                charactersLabel.classList.add('locked');
+                charactersInput.value = "Japanese (auto)";
+            } else {
+                charactersInput.classList.remove('locked');
+                charactersInput.readOnly = false;
+                charactersLabel.classList.remove('locked');
+            }
+
+            const direction = document.getElementById('direction');
+
+            for (const opt of direction.options)
+                opt.disabled = false;
         }
 
         function updateActiveButton() {
@@ -169,7 +359,23 @@
             }
         });
 
+        document.getElementById('toggleBtn').addEventListener('change', toggleAnimation);
+
+        [
+            'pattern', 'characters', 'speed', 'fontSize', 'fontFamily',
+            'color', 'backgroundColor', 'direction', 'amplitudeX', 'amplitudeY',
+            'frequency', 'noiseScale', 'rainDensity', 'rainDirection'
+        ].forEach(id => {
+            document.getElementById(id)?.addEventListener('change', applyOptions);
+        });
+
+        document.getElementById('pattern').addEventListener('change', function () {
+            lockInputsForJapanRain(this.value === 'japan-rain');
+            applyOptions();
+        });
+
         window.addEventListener('load', () => {
+            lockInputsForJapanRain(document.getElementById('pattern').value === 'japan-rain');
             setTimeout(initBackground, 250);
         });
     </script>
