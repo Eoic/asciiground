@@ -117,7 +117,7 @@ describe('ASCIIGround', () => {
             const ascii = new ASCIIGround(canvas, defaultOptions);
             ascii.updateOptions({ speed: 0.05 });
             
-            expect(mockContext.measureText).toHaveBeenCalledWith('M');
+            expect(mockContext.measureText).toHaveBeenCalledWith('Ｍ');
         });
     });
 
