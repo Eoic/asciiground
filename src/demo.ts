@@ -7,10 +7,31 @@ const ascii = new ASCIIGround(canvas, {
     pattern: 'perlin',
     characters: ['.', ':', ';', '+', '*', '#'],
     speed: 0.001,
-}).init();
+    direction: 'down',
+    noiseScale: 0.1,
+    fontSize: 16,
+    fontFamily: 'monospace',
+    color: '#00ff00',
+    backgroundColor: '#000000',
+    amplitudeX: 1,
+    amplitudeY: 1,
+    frequency: 1,
+    rainDensity: 0.9,
+    rainDirection: 'vertical',
+});
 
-window.switchPattern = (pattern: ASCIIGroundOptions['pattern']) => {
-    ascii.updateOptions({ pattern });
+window.switchPattern = (
+    pattern: ASCIIGroundOptions['pattern'],
+    extraOptions?: Partial<ASCIIGroundOptions>
+) => {
+    ascii.updateOptions({
+        pattern,
+        ...extraOptions,
+    });
+};
+
+window.setASCIIGroundOptions = (opts: Partial<ASCIIGroundOptions>) => {
+    ascii.updateOptions(opts);
 };
 
 window.toggleAnimation = function () {
@@ -19,4 +40,8 @@ window.toggleAnimation = function () {
     else ascii.startAnimation();
 };
 
-ascii.startAnimation();
+window.resizeASCII = function () {
+    ascii.resize(canvas.clientWidth, canvas.clientHeight);
+};
+
+ascii.init();

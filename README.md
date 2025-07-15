@@ -11,9 +11,12 @@ A JS library for creating animated ASCII backgrounds.
 
 ## Features
 
-- Multiple animation patterns (Perlin noise, waves, rain, static).
-- Configuration options for animation speed, character sets, and more.
+- Multiple animation patterns: **Perlin noise**, **waves**, **rain**, **static**, **japan-rain** (Japanese matrix rain).
+- Configuration options for animation speed, direction, density, character sets, wave/Perlin/rain parameters, and more.
 - Responsive and resizable.
+- Utility function for full-page backgrounds.
+- Customizable font, color, and background.
+- Supports both ESM and UMD/CDN usage.
 
 ## Installation
 
@@ -97,15 +100,23 @@ background.start()
 
 ### ASCIIGroundOptions
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `pattern` | `'perlin' \| 'wave' \| 'rain' \| 'static'` | Required | Animation pattern type |
-| `characters` | `string[]` | Required | ASCII characters from lightest to darkest |
-| `speed` | `number` | Required | Animation speed multiplier |
-| `fontSize` | `number` | `12` | Font size in pixels |
-| `fontFamily` | `string` | `'monospace'` | Font family |
-| `color` | `string` | `'#00ff00'` | Text color |
-| `backgroundColor` | `string` | `'#000000'` | Background color |
+| Property         | Type                                                                           | Default         | Description                                                    |
+|------------------|--------------------------------------------------------------------------------|-----------------|----------------------------------------------------------------|
+| `pattern`        | `'perlin' \| 'wave' \| 'rain' \| 'static' \| 'japan-rain'`                     | Required        | Animation pattern type                                         |
+| `characters`     | `string[]`                                                                     | Required        | ASCII characters from lightest to darkest                      |
+| `speed`          | `number`                                                                       | Required        | Animation speed multiplier                                     |
+| `animated`       | `boolean`                                                                      | `true`          | Whether the background is animated                             |
+| `fontSize`       | `number`                                                                       | `12`            | Font size in pixels                                            |
+| `fontFamily`     | `string`                                                                       | `'monospace'`   | Font family                                                    |
+| `color`          | `string`                                                                       | `'#00ff00'`     | Text color                                                     |
+| `backgroundColor`| `string`                                                                       | `'#000000'`     | Background color                                               |
+| `direction`      | `'left' \| 'right' \| 'up' \| 'down'`                                          | `'down'`        | Animation direction (Perlin/Wave)                              |
+| `amplitudeX`     | `number`                                                                       | `1`             | Horizontal amplitude (wave)                                    |
+| `amplitudeY`     | `number`                                                                       | `1`             | Vertical amplitude (wave)                                      |
+| `frequency`      | `number`                                                                       | `1`             | Frequency for wave pattern                                     |
+| `noiseScale`     | `number`                                                                       | `0.1`           | Scale for Perlin noise pattern                                 |
+| `rainDensity`    | `number` (0-1)                                                                 | `0.9`           | Density of rain drops (rain/japan-rain)                        |
+| `rainDirection`  | `'vertical' \| 'diagonal-left' \| 'diagonal-right'`                            | `'vertical'`    | Direction of rain (rain)                                       |
 
 ### ASCIIGround methods
 
@@ -124,6 +135,9 @@ Updates animation options dynamically.
 #### `resize(width: number, height: number): void`
 Resizes the canvas and recalculates the character grid.
 
+#### `isAnimating: boolean`
+Returns `true` if the animation is currently running.
+
 ### Utility functions
 
 #### `createFullPageBackground(options: ASCIIGroundOptions): ASCIIGround`
@@ -138,7 +152,9 @@ Creates smooth, organic-looking patterns like clouds, terrain or flowing effects
 {
   pattern: 'perlin',
   characters: [' ', '.', ':', ';', '+', '*', '#', '@'],
-  speed: 0.01
+  speed: 0.01,
+  direction: 'down', // Optional: 'left' | 'right' | 'up' | 'down'
+  noiseScale: 0.08
 }
 ```
 
@@ -149,7 +165,11 @@ Generates sine wave patterns that flow across the screen.
 {
   pattern: 'wave',
   characters: ['~', '-', '=', '#'],
-  speed: 0.02
+  speed: 0.02,
+  amplitudeX: 2,
+  amplitudeY: 1,
+  frequency: 1.2,
+  direction: 'right'
 }
 ```
 
@@ -160,7 +180,9 @@ Creates a downward flowing effect reminiscent of digital rain.
 {
   pattern: 'rain',
   characters: ['|', '!', '1', ':'],
-  speed: 0.05
+  speed: 0.05,
+  rainDensity: 0.8,
+  rainDirection: 'vertical' // or 'diagonal-left', 'diagonal-right'
 }
 ```
 
@@ -175,9 +197,41 @@ Random noise effect for TV static or glitch aesthetics.
 }
 ```
 
+### Japan Rain
+Japanese-style Matrix rain using random Katakana, Hiragana, and Kanji.
+
+```typescript
+{
+  pattern: 'japan-rain',
+  characters: [' '], // Ignored, uses Japanese chars internally
+  speed: 0.07,
+  rainDensity: 0.85,
+  fontSize: 18,
+  color: '#4dfb4a',
+  backgroundColor: '#000'
+}
+```
+
 ## Examples
 
-### Matrix-style rain effect
+### Matrix-style Japan Rain
+
+```typescript
+import { createFullPageBackground } from 'asciiground'
+
+const matrix = createFullPageBackground({
+  pattern: 'japan-rain',
+  speed: 0.06,
+  rainDensity: 0.92,
+  fontSize: 18,
+  color: '#4dfb4a',
+  backgroundColor: '#000'
+})
+
+matrix.start()
+```
+
+### Classic Matrix Rain
 
 ```typescript
 import { createFullPageBackground } from 'asciiground'
@@ -188,7 +242,8 @@ const matrix = createFullPageBackground({
   speed: 0.05,
   color: '#00ff00',
   backgroundColor: '#000000',
-  fontSize: 14
+  fontSize: 14,
+  rainDensity: 0.9
 })
 
 matrix.start()
@@ -202,7 +257,10 @@ const cyberpunk = new ASCIIGround(canvas, {
   characters: [' ', '░', '▒', '▓', '█'],
   speed: 0.03,
   color: '#ff00ff',
-  backgroundColor: '#1a0a1a'
+  backgroundColor: '#1a0a1a',
+  amplitudeX: 2,
+  amplitudeY: 1.5,
+  frequency: 1.1
 })
 ```
 

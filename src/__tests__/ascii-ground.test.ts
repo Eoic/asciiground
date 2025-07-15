@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ASCIIGround, createFullPageBackground, type ASCIIGroundOptions } from '../index';
 
-// Setup global mocks
 const mockRequestAnimationFrame = vi.fn();
 const mockCancelAnimationFrame = vi.fn();
 
 Object.assign(globalThis, {
     requestAnimationFrame: mockRequestAnimationFrame,
     cancelAnimationFrame: mockCancelAnimationFrame,
+
     performance: {
         now: vi.fn(() => 1000),
     },
@@ -108,7 +108,7 @@ describe('ASCIIGround', () => {
         it('should update options', () => {
             const ascii = new ASCIIGround(canvas, defaultOptions).init();
             ascii.updateOptions({ speed: 0.05 });
-            expect(mockContext.measureText).toHaveBeenCalledWith('M');
+            expect(mockContext.measureText).toHaveBeenCalledWith('Ｍ');
         });
     });
 
