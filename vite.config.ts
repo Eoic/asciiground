@@ -10,8 +10,7 @@ const config: Record<string, UserConfig> = {
         plugins: [
             etaPlugin({
                 styles: [
-                    '../../docs/styles/common.css',
-                    '../../docs/styles/demo.css'
+                    './demo.css'
                 ],
                 scripts: [
                     './demo.js'
