@@ -32,11 +32,10 @@ jobs:
 
     - name: Create documentation site
       run: |
-        # Copy build files to a specific subdirectory to avoid overwriting docs.
-        mkdir -p docs/dist
-        cp -r dist/* docs/dist/
+        # Generate the demo page.
+        npm run build:demo
 
-        # Generate API documentation
+        # Generate the API documentation.
         npx typedoc src/index.ts --out docs/manual
 
     - name: Setup GitHub Pages.

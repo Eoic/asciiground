@@ -1,6 +1,6 @@
 import { ASCIIGround, type ASCIIGroundOptions } from '../index.js';
-import '../styles/common.css';
-import '../styles/demo.css';
+import '../../docs/styles/common.css';
+import '../../docs/styles/demo.css';
 
 let asciiGround: ASCIIGround | null = null;
 

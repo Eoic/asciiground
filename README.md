@@ -50,7 +50,7 @@ const asciiGround = new ASCIIGround(canvas, {
 })
 
 // Render background on the canvas.
-asciiGround.start()
+asciiGround.init()
 ```
 
 ### Full page background
@@ -67,7 +67,7 @@ const background = createFullPageBackground({
   backgroundColor: '#000000'
 })
 
-background.start()
+background.init()
 ```
 
 ### CDN usage
@@ -90,58 +90,11 @@ background.start()
             speed: 0.01
         })
 
-        ascii.start()
+        ascii.init()
     </script>
 </body>
 </html>
 ```
-
-## API reference
-
-### ASCIIGroundOptions
-
-| Property         | Type                                                                           | Default         | Description                                                    |
-|------------------|--------------------------------------------------------------------------------|-----------------|----------------------------------------------------------------|
-| `pattern`        | `'perlin' \| 'wave' \| 'rain' \| 'static' \| 'japan-rain'`                     | Required        | Animation pattern type                                         |
-| `characters`     | `string[]`                                                                     | Required        | ASCII characters from lightest to darkest                      |
-| `speed`          | `number`                                                                       | Required        | Animation speed multiplier                                     |
-| `animated`       | `boolean`                                                                      | `true`          | Whether the background is animated                             |
-| `fontSize`       | `number`                                                                       | `12`            | Font size in pixels                                            |
-| `fontFamily`     | `string`                                                                       | `'monospace'`   | Font family                                                    |
-| `color`          | `string`                                                                       | `'#00ff00'`     | Text color                                                     |
-| `backgroundColor`| `string`                                                                       | `'#000000'`     | Background color                                               |
-| `direction`      | `'left' \| 'right' \| 'up' \| 'down'`                                          | `'down'`        | Animation direction (Perlin/Wave)                              |
-| `amplitudeX`     | `number`                                                                       | `1`             | Horizontal amplitude (wave)                                    |
-| `amplitudeY`     | `number`                                                                       | `1`             | Vertical amplitude (wave)                                      |
-| `frequency`      | `number`                                                                       | `1`             | Frequency for wave pattern                                     |
-| `noiseScale`     | `number`                                                                       | `0.1`           | Scale for Perlin noise pattern                                 |
-| `rainDensity`    | `number` (0-1)                                                                 | `0.9`           | Density of rain drops (rain/japan-rain)                        |
-| `rainDirection`  | `'vertical' \| 'diagonal-left' \| 'diagonal-right'`                            | `'vertical'`    | Direction of rain (rain)                                       |
-
-### ASCIIGround methods
-
-#### `init(): void`
-Initializes the canvas and character grid based on options.
-
-#### `startAnimation(): void`
-Starts the animation loop.
-
-#### `stopAnimation(): void`
-Stops the animation loop.
-
-#### `updateOptions(options: Partial<ASCIIGroundOptions>): void`
-Updates animation options dynamically.
-
-#### `resize(width: number, height: number): void`
-Resizes the canvas and recalculates the character grid.
-
-#### `isAnimating: boolean`
-Returns `true` if the animation is currently running.
-
-### Utility functions
-
-#### `createFullPageBackground(options: ASCIIGroundOptions): ASCIIGround`
-Creates a full-page background canvas with automatic resizing.
 
 ## Animation patterns
 
@@ -228,7 +181,7 @@ const matrix = createFullPageBackground({
   backgroundColor: '#000'
 })
 
-matrix.start()
+matrix.init()
 ```
 
 ### Classic Matrix Rain
@@ -246,7 +199,7 @@ const matrix = createFullPageBackground({
   rainDensity: 0.9
 })
 
-matrix.start()
+matrix.init()
 ```
 
 ### Cyberpunk waves
@@ -280,11 +233,11 @@ npm install
 npm run dev
 ```
 
-The development server automatically:
-- Generates demo pages from templates
-- Serves the demo with live library reloading
-- Opens the demo page in your browser
-- Watches for changes and hot-reloads
+The development server will:
+- Generate the demo page from the template.
+- Serve the demo with live library hot-reloading.
+- Open the demo page in your browser.
+- Watches for changes and reloads the page automagically.
 
 ### Building the library
 
