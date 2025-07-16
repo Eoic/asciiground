@@ -1,0 +1,244 @@
+/* Base styles and CSS reset */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    color: #f5f5f5;
+    background-color: #292929;
+}
+
+/* Text and color utilities */
+.text-muted {
+    color: #ddd;
+}
+
+.text-light {
+    color: #f5f5f5;
+}
+
+/* Common gradient text styling */
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #0d7377 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+/* Terminal symbol styling with blink animation */
+.terminal-symbol {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #0d7377 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8em;
+    animation: terminalBlink 1.5s infinite;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+/* Common glass morphism styling */
+.glass {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+/* Layout utilities */
+.flex {
+    display: flex;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.align-center {
+    align-items: center;
+}
+
+.gap-1 {
+    gap: 0.5rem;
+}
+
+.gap-2 {
+    gap: 1rem;
+}
+
+/* Position utilities */
+.fixed {
+    position: fixed;
+}
+
+.relative {
+    position: relative;
+}
+
+/* Margin utilities */
+.m-0 {
+    margin: 0;
+}
+
+.mt-0 {
+    margin-top: 0;
+}
+
+.mb-1 {
+    margin-bottom: 0.5rem;
+}
+
+.mb-2 {
+    margin-bottom: 1rem;
+}
+
+/* Button base styles */
+.btn {
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-fluid {
+    width: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Button variants */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #0d7377 0%, #14a085 100%);
+    box-shadow: 0 4px 14px rgba(13, 115, 119, 0.4);
+}
+
+.btn-secondary:hover {
+    box-shadow: 0 6px 20px rgba(13, 115, 119, 0.4);
+}
+
+.btn-dark {
+    background: linear-gradient(135deg, #333 0%, #555 100%);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.btn-dark:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Icon styling */
+.icon {
+    fill: currentColor;
+    vertical-align: middle;
+}
+
+.icon-sm {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-md {
+    width: 1.75rem;
+    height: 1.75rem;
+}
+
+/* Common animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes terminalBlink {
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0.3;
+    }
+}
+
+/* Animation utilities */
+.fade-in-up {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.delay-1 {
+    animation-delay: 0.1s;
+}
+
+.delay-2 {
+    animation-delay: 0.2s;
+}
+
+.delay-3 {
+    animation-delay: 0.3s;
+}
+
+.delay-4 {
+    animation-delay: 0.4s;
+}
+
+.delay-5 {
+    animation-delay: 0.5s;
+}
+
+.delay-6 {
+    animation-delay: 0.6s;
+}
+
+/* Formatting */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+    .btn {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn {
+        font-size: 0.85rem;
+    }
+}

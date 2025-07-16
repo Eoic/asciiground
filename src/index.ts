@@ -9,8 +9,6 @@ export interface ASCIIGroundOptions {
     characters: string[]
     /** Animation speed multiplier. */
     speed: number
-    /** Whether the background is animated. */
-    animated?: boolean
     /** Font size in pixels. */
     fontSize?: number
     /** Font family. */
@@ -19,7 +17,6 @@ export interface ASCIIGroundOptions {
     color?: string
     /** Background color. */
     backgroundColor?: string
-
     /** Direction of animation, if supported by the pattern. */
     direction?: 'left' | 'right' | 'up' | 'down'
     /** Horizontal wave amplitude (for wave pattern). */
@@ -45,32 +42,42 @@ export interface NoiseFunction {
  */
 class PerlinNoise {
     private permutation: number[];
+
     constructor(seed: number = 0) {
         this.permutation = this.generatePermutation(seed);
     }
+
     private generatePermutation(seed: number): number[] {
         const p = [];
-        for (let i = 0; i < 256; i++) p[i] = i;
+
+        for (let i = 0; i < 256; i++)
+            p[i] = i;
+
         for (let i = 255; i > 0; i--) {
             const j = Math.floor((seed * (i + 1)) % (i + 1));
             [p[i], p[j]] = [p[j], p[i]];
             seed = (seed * 16807) % 2147483647;
         }
+
         return [...p, ...p];
     }
+
     private fade(t: number): number {
         return t * t * t * (t * (t * 6 - 15) + 10);
     }
+
     private lerp(a: number, b: number, t: number): number {
         return a + t * (b - a);
     }
+
     private grad(hash: number, x: number, y: number): number {
         const h = hash & 3;
         const u = h < 2 ? x : y;
         const v = h < 2 ? y : x;
         return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
     }
-    noise(x: number, y: number): number {
+
+    public noise(x: number, y: number): number {
         const X = Math.floor(x) & 255;
         const Y = Math.floor(y) & 255;
         x -= Math.floor(x);
@@ -83,6 +90,7 @@ class PerlinNoise {
         const b = this.permutation[X + 1] + Y;
         const ba = this.permutation[b];
         const bb = this.permutation[b + 1];
+
         return this.lerp(
             this.lerp(
                 this.grad(this.permutation[aa], x, y),
@@ -110,10 +118,11 @@ interface JapanRainDrop {
 
 function randomJapaneseChar(): string {
     const ranges = [
-        [0x30A0, 0x30FF], // Katakana
-        [0x3040, 0x309F], // Hiragana
-        [0x4E00, 0x4E80], // Some Kanji (short range for visual effect)
+        [0x30A0, 0x30FF], // Katakana.
+        [0x3040, 0x309F], // Hiragana.
+        [0x4E00, 0x4E80]  // Some Kanji (short range for visual effect).
     ];
+
     const [start, end] = ranges[Math.floor(Math.random() * ranges.length)];
     return String.fromCharCode(Math.floor(Math.random() * (end - start)) + start);
 }
@@ -122,29 +131,34 @@ function randomJapaneseChar(): string {
  * Main ASCIIGround class for creating backgrounds.
  */
 export class ASCIIGround {
-    private canvas: HTMLCanvasElement;
-    private ctx: CanvasRenderingContext2D;
-    private options: Required<ASCIIGroundOptions>;
-    private animationId: number | null = null;
-    private startTime: number = 0;
-    private perlin: PerlinNoise;
-    private cols: number = 0;
-    private rows: number = 0;
-    private charWidth: number = 0;
-    private charHeight: number = 0;
-    private japanRainDrops: JapanRainDrop[] = [];
-    private rainDropDensity: number = 0.9;
+    private _canvas: HTMLCanvasElement;
+    private _context: CanvasRenderingContext2D;
+    private _options: Required<ASCIIGroundOptions>;
+    private _animationId: number | null = null;
+    private _startTime: number = 0;
+    private _currentTime: number = performance.now();
+    private _perlin: PerlinNoise;
+    private _cols: number = 0;
+    private _rows: number = 0;
+    private _charWidth: number = 0;
+    private _charHeight: number = 0;
+    private _japanRainDrops: JapanRainDrop[] = [];
+    private _rainDropDensity: number = 0.9;
 
     get isAnimating(): boolean {
-        return this.animationId !== null;
+        return this._animationId !== null;
     }
   
     constructor(canvas: HTMLCanvasElement, options: ASCIIGroundOptions) {
-        this.canvas = canvas;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('Could not get 2D context from canvas.');
-        this.ctx = ctx;
-        this.options = {
+        this._canvas = canvas;
+        const context = canvas.getContext('2d');
+
+        if (!context) 
+            throw new Error('Could not get 2D context from the canvas.');
+    
+        this._context = context;
+    
+        this._options = {
             pattern: options.pattern,
             characters: options.characters,
             speed: options.speed,
@@ -152,37 +166,40 @@ export class ASCIIGround {
             fontFamily: options.fontFamily || 'monospace',
             color: options.color || '#00ff00',
             backgroundColor: options.backgroundColor || '#000000',
-            animated: options.animated !== undefined ? options.animated : true,
             direction: options.direction || 'down',
             amplitudeX: options.amplitudeX ?? 1,
             amplitudeY: options.amplitudeY ?? 1,
             frequency: options.frequency ?? 1,
             noiseScale: options.noiseScale ?? 0.1,
             rainDensity: options.rainDensity ?? 0.9,
-            rainDirection: options.rainDirection ?? 'vertical'
+            rainDirection: options.rainDirection ?? 'vertical',
         };
-        this.rainDropDensity = this.options.rainDensity;
-        this.perlin = new PerlinNoise();
-        this.setupCanvas();
-        // Só inicializa os drops após saber cols e rows
-        if (this.options.pattern === 'japan-rain') {
+    
+        this._perlin = new PerlinNoise();
+        this._rainDropDensity = this._options.rainDensity;
+        this.configureCanvas();
+
+        if (this._options.pattern === 'japan-rain')
             this.initJapanRain();
-        }
     }
-  
-    private setupCanvas(): void {
-        this.ctx.font = `${this.options.fontSize}px ${this.options.fontFamily}`;
-        this.ctx.textBaseline = 'top';
-        const metrics = this.ctx.measureText('Ｍ'); // Fullwidth M
-        this.charWidth = metrics.width;
-        this.charHeight = this.options.fontSize;
-        this.cols = Math.floor(this.canvas.width / this.charWidth);
-        this.rows = Math.floor(this.canvas.height / this.charHeight);
+
+    private configureCanvas(): void {
+        this._context.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
+        this._context.textBaseline = 'top';
+    
+        // Measure character dimensions.
+        const metrics = this._context.measureText('Ｍ');
+        this._charWidth = metrics.width;
+        this._charHeight = this._options.fontSize;
+    
+        // Calculate grid dimensions.
+        this._cols = Math.floor(this._canvas.width / this._charWidth);
+        this._rows = Math.floor(this._canvas.height / this._charHeight);
     }
 
     private getNoiseFunction(): NoiseFunction {
-        const { noiseScale, direction, amplitudeX, amplitudeY, frequency, rainDirection } = this.options;
-        switch (this.options.pattern) {
+        const { noiseScale, direction, amplitudeX, amplitudeY, frequency, rainDirection } = this._options;
+        switch (this._options.pattern) {
             case 'perlin':
                 return (x: number, y: number, time: number) => {
                     let dx = x, dy = y;
@@ -192,30 +209,41 @@ export class ASCIIGround {
                         case 'up':    dy = -y; break;
                         case 'down':  dy = y; break;
                     }
-                    return this.perlin.noise(dx * noiseScale, dy * noiseScale + time);
+                    return this._perlin.noise(dx * noiseScale, dy * noiseScale + time);
                 };
             case 'wave':
                 return (x: number, y: number, time: number) => {
                     let t = time * frequency;
-                    let _x = x, _y = y;
+                    const _x = x, _y = y;
+
                     switch (direction) {
                         case 'left':  t = -t; break;
-                        case 'right': t = t; break;
+                        // case 'right': t = t; break;
                         case 'up':    t = -t; break;
-                        case 'down':  t = t; break;
+                        // case 'down':  t = t; break;
                     }
+
                     return (
-                        Math.sin(_x * 0.1 * amplitudeX + t) * Math.cos(_y * 0.1 * amplitudeY + t * 0.5)
+                        Math.sin(_x * 0.1 * amplitudeX + t) * 
+                        Math.cos(_y * 0.1 * amplitudeY + t * 0.5)
                     );
                 };
             case 'rain':
                 return (x: number, y: number, time: number) => {
                     let angle = 0;
+
                     switch (rainDirection) {
-                        case 'vertical':      angle = 0; break;
-                        case 'diagonal-left': angle = Math.PI / 4; break;
-                        case 'diagonal-right':angle = -Math.PI / 4; break;
+                        case 'vertical':
+                            angle = 0;
+                            break;
+                        case 'diagonal-left':
+                            angle = Math.PI / 4;
+                            break;
+                        case 'diagonal-right':
+                            angle = -Math.PI / 4;
+                            break;
                     }
+
                     const dx = Math.cos(angle), dy = Math.sin(angle);
                     return Math.sin((y * dy + x * dx) * 0.2 + time * 2) * Math.cos(x * 0.05);
                 };
@@ -227,15 +255,17 @@ export class ASCIIGround {
     }
 
     private initJapanRain(): void {
-        this.japanRainDrops = [];
-        this.rainDropDensity = this.options.rainDensity ?? 0.9;
-        for (let col = 0; col < this.cols; col++) {
-            if (Math.random() < this.rainDropDensity) {
+        this._japanRainDrops = [];
+        this._rainDropDensity = this._options.rainDensity ?? 0.9;
+
+        for (let col = 0; col < this._cols; col++) {
+            if (Math.random() < this._rainDropDensity) {
                 const length = Math.floor(Math.random() * 20) + 8;
                 const chars = Array.from({ length }, () => randomJapaneseChar());
-                this.japanRainDrops.push({
+
+                this._japanRainDrops.push({
                     col,
-                    y: Math.floor(Math.random() * this.rows),
+                    y: Math.floor(Math.random() * this._rows),
                     speed: 0.5 + Math.random() * 1.2,
                     chars,
                     length,
@@ -246,14 +276,16 @@ export class ASCIIGround {
     }
 
     private updateJapanRainDrops(): void {
-        for (const drop of this.japanRainDrops) {
-            drop.y += drop.speed * this.options.speed;
-            drop.age += this.options.speed;
+        for (const drop of this._japanRainDrops) {
+            drop.y += drop.speed * this._options.speed;
+            drop.age += this._options.speed;
+
             if (Math.random() < 0.04) {
-                let idx = Math.floor(Math.random() * drop.length);
+                const idx = Math.floor(Math.random() * drop.length);
                 drop.chars[idx] = randomJapaneseChar();
             }
-            if (drop.y - drop.length > this.rows) {
+
+            if (drop.y - drop.length > this._rows) {
                 drop.y = -Math.floor(Math.random() * 8);
                 drop.length = Math.floor(Math.random() * 20) + 8;
                 drop.chars = Array.from({ length: drop.length }, () => randomJapaneseChar());
@@ -261,109 +293,157 @@ export class ASCIIGround {
                 drop.age = 0;
             }
         }
-        const neededDrops = Math.floor(this.cols * this.rainDropDensity);
-        while (this.japanRainDrops.length < neededDrops) {
-            const col = this.japanRainDrops.length % this.cols;
+
+        const neededDrops = Math.floor(this._cols * this._rainDropDensity);
+
+        while (this._japanRainDrops.length < neededDrops) {
+            const col = this._japanRainDrops.length % this._cols;
             const length = Math.floor(Math.random() * 20) + 8;
             const chars = Array.from({ length }, () => randomJapaneseChar());
-            this.japanRainDrops.push({
+            this._japanRainDrops.push({
                 col,
-                y: Math.floor(Math.random() * this.rows),
+                y: Math.floor(Math.random() * this._rows),
                 speed: 0.5 + Math.random() * 1.2,
                 chars,
                 length,
                 age: 0,
             });
         }
-        if (this.japanRainDrops.length > neededDrops) {
-            this.japanRainDrops.length = neededDrops;
-        }
+
+        if (this._japanRainDrops.length > neededDrops) 
+            this._japanRainDrops.length = neededDrops;
     }
 
     private renderJapanRain(): void {
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        for (const drop of this.japanRainDrops) {
+        this._context.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+
+        for (const drop of this._japanRainDrops) {
             for (let i = 0; i < drop.length; i++) {
                 const char = drop.chars[i];
-                const x = drop.col * this.charWidth;
-                const y = (Math.floor(drop.y) - i) * this.charHeight;
-                if (y < 0 || y > this.canvas.height) continue;
-                if (i === 0) {
-                    this.ctx.fillStyle = '#ccffcc';
-                } else if (i < 3) {
-                    this.ctx.fillStyle = this.options.color || '#00ff00';
-                } else {
-                    this.ctx.fillStyle = 'rgba(0,255,0,0.7)';
-                }
-                this.ctx.fillText(char, x, y);
+                const x = drop.col * this._charWidth;
+                const y = (Math.floor(drop.y) - i) * this._charHeight;
+
+                if (y < 0 || y > this._canvas.height)
+                    continue;
+
+                if (i === 0) 
+                    this._context.fillStyle = '#ccffcc';
+                else if (i < 3) 
+                    this._context.fillStyle = this._options.color || '#00ff00';
+                else 
+                    this._context.fillStyle = 'rgba(0,255,0,0.7)';
+
+                this._context.fillText(char, x, y);
             }
         }
     }
   
     private render(time: number): void {
-        if (this.options.pattern === 'japan-rain') {
+        this._context.fillStyle = this._options.backgroundColor;
+        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+        this._context.fillStyle = this._options.color;
+
+        if (this._options.pattern === 'japan-rain') {
             this.updateJapanRainDrops();
             this.renderJapanRain();
             return;
         }
 
-        this.ctx.fillStyle = this.options.backgroundColor;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.fillStyle = this.options.color;
+        this._context.fillStyle = this._options.backgroundColor;
+        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+        this._context.fillStyle = this._options.color;
         const noiseFunction = this.getNoiseFunction();
-        const animationTime = ((time - this.startTime) / 1000) * this.options.speed;
-        for (let row = 0; row < this.rows; row++) {
-            for (let col = 0; col < this.cols; col++) {
+        const animationTime = ((time - this._startTime) / 1000) * this._options.speed;
+
+        for (let row = 0; row < this._rows; row++) {
+            for (let col = 0; col < this._cols; col++) {
                 const noiseValue = noiseFunction(col, row, animationTime);
                 // Map noise value (-1 to 1) to character index.
-                const normalizedValue = (noiseValue + 1) / 2; // Convert to 0-1 range
-                const charIndex = Math.floor(normalizedValue * this.options.characters.length);
-                const clampedIndex = Math.max(0, Math.min(charIndex, this.options.characters.length - 1));
-                const char = this.options.characters[clampedIndex];
-                const x = col * this.charWidth;
-                const y = row * this.charHeight;
-                this.ctx.fillText(char, x, y);
+                const normalizedValue = (noiseValue + 1) / 2;
+                const charIndex = Math.floor(normalizedValue * this._options.characters.length);
+                const clampedIndex = Math.max(0, Math.min(charIndex, this._options.characters.length - 1));
+                const char = this._options.characters[clampedIndex];
+                const x = col * this._charWidth;
+                const y = row * this._charHeight;
+                this._context.fillText(char, x, y);
             }
         }
     }
-  
-    start(): void {
-        if (this.animationId !== null) return;
-        this.startTime = performance.now();
-        const animate = (time: number) => {
-            this.render(time);
-            this.animationId = requestAnimationFrame(animate);
-        };
-        this.animationId = requestAnimationFrame(animate);
+
+    /**
+     * Initialize the canvas and render the initial state.
+     */
+    init(): ASCIIGround {
+        this.configureCanvas();
+        this.render(this._currentTime);
+        return this;
     }
   
-    stop(): void {
-        if (this.animationId !== null) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
+    /**
+     * Start the animation.
+     */
+    startAnimation(): void {
+        if (this._animationId !== null)
+            throw new Error('Animation is already running!');
+    
+        this._startTime = performance.now();
+    
+        const animate = (time: number) => {
+            this._currentTime = time;
+            this.render(time);
+            this._animationId = requestAnimationFrame(animate);
+        };
+    
+        this._animationId = requestAnimationFrame(animate);
+    }
+  
+    /**
+     * Stop the animation.
+     */
+    stopAnimation(): void {
+        if (this._animationId !== null) {
+            cancelAnimationFrame(this._animationId);
+            this._animationId = null;
         }
     }
+
+    /**
+     * Update animation options.
+     */
+    // updateOptions(newOptions: Partial<ASCIIGroundOptions>): void {
+    //     this._options = { ...this._options, ...newOptions };
+    //     this.init();
+    //     this.animationId = requestAnimationFrame(animate);
+    // }
+  
   
     updateOptions(newOptions: Partial<ASCIIGroundOptions>): void {
-        this.options = { ...this.options, ...newOptions };
-        if (typeof newOptions.rainDensity === 'number') {
-            this.rainDropDensity = newOptions.rainDensity;
-        }
-        this.setupCanvas();
-        if (this.options.pattern === 'japan-rain') {
+        this._options = { ...this._options, ...newOptions };
+
+        if (typeof newOptions.rainDensity === 'number')
+            this._rainDropDensity = newOptions.rainDensity;
+
+        this.init();
+
+        if (this._options.pattern === 'japan-rain')
             this.initJapanRain();
-        }
     }
   
     resize(width: number, height: number): void {
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.setupCanvas();
-        // Atualiza drops se padrão for 'japan-rain'
-        if (this.options.pattern === 'japan-rain') {
+        this._canvas.width = width;
+        this._canvas.height = height;
+        this.configureCanvas();
+
+        if (!this.isAnimating)
+            this.render(this._currentTime);
+
+        this._canvas.width = width;
+        this._canvas.height = height;
+        this.init();
+
+        if (this._options.pattern === 'japan-rain')
             this.initJapanRain();
-        }
     }
 }
 
@@ -383,11 +463,13 @@ export function createFullPageBackground(options: ASCIIGroundOptions): ASCIIGrou
     canvas.height = window.innerHeight;
     document.body.appendChild(canvas);
     const asciiGround = new ASCIIGround(canvas, options);
+
     const handleResize = () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         asciiGround.resize(canvas.width, canvas.height);
     };
+
     window.addEventListener('resize', handleResize);
     return asciiGround;
 }

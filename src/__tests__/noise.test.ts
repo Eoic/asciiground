@@ -34,7 +34,6 @@ describe('PerlinNoise integration', () => {
             pattern: 'perlin',
             characters: ['.', '#'],
             speed: 0,
-            animated: false,
         };
 
         const ascii1 = new ASCIIGround(canvas, options);

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description"
+        content="ASCIIGround - a lightweight JavaScript library for animated ASCII backgrounds using canvas and WebGL. Perfect for retro-futuristic web designs." />
+    <meta name="keywords" content="ASCII, animation, canvas, WebGL, JavaScript, library, background, retro" />
+
+    <meta property="og:title" content="ASCIIGround - animated ASCII Backgrounds" />
+    <meta property="og:description"
+        content="A lightweight JavaScript library for stunning animated ASCII backgrounds" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://eoic.github.io/asciiground/" />
+
+    <title>ASCIIGround - animated ASCII backgrounds</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles/common.css">
+    <link rel="stylesheet" href="./styles/landing.css">
+</head>
+
+<body>
+    <canvas id="ascii-bg" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></canvas>
+    <div class="content">
+        <h1 class="gradient-text">
+            <span class="terminal-symbol">></span>
+            ASCIIGround
+        </h1>
+
+        <p> A lightweight JavaScript library for rendering stunning animated ASCII backgrounds using the HTML5 canvas,
+            with support for both 2D and WebGL contexts.
+            Perfect for adding retro-futuristic feeling to your web projects.
+        </p>
+
+        <div class="btns">
+            <a href="./api/index.html" class="btn btn-primary btn-large">
+                <svg class="icon icon-md" viewBox="0 0 72 72" aria-hidden="true">
+                    <path
+                        d="M 23 11 C 18.582 11 15 14.582 15 19 L 15 53 C 15 57.418 18.582 61 23 61 L 52.828125 61 C 54.917125 61 56.782469 59.472578 56.980469 57.392578 C 57.152465 55.592657 56.129795 54.011481 54.613281 53.341797 C 54.580899 53.322659 52.71875 52.216052 52.71875 50.302734 C 52.71875 48.408734 53.824219 47.380859 53.824219 47.380859 L 53.8125 47.378906 C 55.744877 45.918475 57 43.608644 57 41 L 57 19 C 57 14.582 53.418 11 49 11 L 23 11 z M 24.021484 19 L 26 19 L 26 41 C 24.026 41 23.021484 41.490234 23.021484 41.490234 L 23.021484 20 C 23.021484 19.448 23.469484 19 24.021484 19 z M 35 21 L 46 21 C 47.104 21 48 21.896 48 23 C 48 24.104 47.104 25 46 25 L 35 25 C 33.896 25 33 24.104 33 23 C 33 21.896 33.896 21 35 21 z M 35 28 L 41 28 C 42.104 28 43 28.896 43 30 C 43 31.104 42.104 32 41 32 L 35 32 C 33.896 32 33 31.104 33 30 C 33 28.896 33.896 28 35 28 z M 25 49 L 45.283203 49 C 45.114146 49.600115 45 50.268353 45 50.998047 C 45 51.695141 45.201077 52.372046 45.503906 53 L 25.107422 53 C 24.110422 53 23.187344 52.318937 23.027344 51.335938 C 22.824344 50.082938 23.785 49 25 49 z" />
+                </svg>
+                <span> Documentation </span>
+            </a>
+            <a href="./demo/index.html" class="btn btn-secondary btn-large">
+                <svg class="icon icon-md" viewBox="0 0 72 72" aria-hidden="true">
+                    <path
+                        d="M56.379,30.904c1.774,1.103,2.833,3.008,2.833,5.096s-1.059,3.993-2.832,5.096L22.167,62.362	C21.2,62.964,20.101,63.266,19,63.266c-1.004,0-2.008-0.25-2.915-0.755C14.183,61.454,13,59.444,13,57.267V14.733	c0-2.177,1.183-4.187,3.085-5.245c1.903-1.057,4.234-1,6.083,0.149L56.379,30.904z" />
+                </svg>
+                <span> Live demo </span>
+            </a>
+        </div>
+    </div>
+
+    <a href="https://github.com/Eoic/asciiground" class="github-link btn btn-dark">
+        <svg class="icon icon-sm" viewBox="0 0 16 16" version="1.1" aria-hidden="true">
+            <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+        </svg>
+        GitHub
+    </a>
+
+    <script src="./dist/asciiground.umd.js"></script>
+    <script>
+        // Initialize ASCII background
+        document.addEventListener('DOMContentLoaded', function () {
+            const canvas = document.getElementById('ascii-bg');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            try {
+                // TODO: Remove body background after enabling the library again.
+
+                // const ascii = new ASCIIGround.default(canvas, {
+                //     pattern: 'perlin',
+                //     animation: false,
+                //     characters: [' ', '.', ':', ';', '+', '*', '#', '@'],
+                //     speed: 0.015,
+                //     fontSize: 14,
+                //     color: '#00ff41',
+                //     backgroundColor: '#000000'
+                // });
+
+                // ascii.start();
+
+                // window.addEventListener('resize', function () {
+                //     canvas.width = window.innerWidth;
+                //     canvas.height = window.innerHeight;
+                //     ascii.resize(canvas.width, canvas.height);
+                // });
+            } catch (error) {
+                console.error('Failed to initialize ASCIIGround:', error);
+                canvas.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>
