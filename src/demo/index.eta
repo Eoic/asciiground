@@ -31,17 +31,17 @@
             <span> Pattern </span>
 
             <select id="pattern">
+                <option value="static">Static</option>
                 <option value="perlin">Perlin Noise</option>
                 <option value="wave">Wave</option>
                 <option value="rain">Rain</option>
-                <option value="static">Static</option>
                 <option value="japan-rain">Japan Rain</option>
             </select>
         </label>
 
         <label id="characters-label">
             <span> Characters (comma-separated) </span>
-            <input type="text" id="characters" value=". ,: ; + * # @">
+            <input type="text" id="characters" value="=,,,,,">
         </label>
 
         <label>
@@ -51,7 +51,7 @@
 
         <label>
             <span> Font size </span>
-            <input type="number" id="fontSize" value="12">
+            <input type="number" id="fontSize" value="36">
         </label>
 
         <label>
@@ -61,12 +61,12 @@
 
         <label>
             <span> Text color </span>
-            <input type="color" id="color" value="#00ff00">
+            <input type="color" id="color" value="#4b18d8">
         </label>
 
         <label>
             <span> Background color </span>
-            <input type="color" id="backgroundColor" value="#000000">
+            <input type="color" id="backgroundColor" value="#0A0321">
         </label>
 
         <label>
@@ -127,7 +127,11 @@
     <canvas id="background-canvas"></canvas>
 
     <% scripts.forEach(function(scriptPath) { %>
-        <script src="<%= scriptPath %>"></script>
+        <% if (scriptPath.endsWith(".ts")) { %>
+            <script type="module" src="<%= scriptPath %>"></script>
+        <% } else { %>
+            <script src="<%= scriptPath %>"></script>
+        <% } %>
     <% }) %>
 </body>
 

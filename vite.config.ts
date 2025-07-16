@@ -16,6 +16,7 @@ const config: Record<string, UserConfig> = {
                 scripts: [
                     './demo.js'
                 ],
+                isDev: false,
             })
         ],
         build: {
@@ -38,7 +39,16 @@ const config: Record<string, UserConfig> = {
     },
     'lib': {
         plugins: [
-            dts({ insertTypesEntry: true })
+            dts({ 
+                insertTypesEntry: true,
+                exclude: [
+                    'src/demo/**/*',
+                    'src/plugins/**/*',
+                    'src/__tests__/**/*',
+                    'src/**/*.test.ts',
+                    'src/**/*.spec.ts'
+                ],
+            })
         ],
         build: {
             lib: {
@@ -61,15 +71,18 @@ const config: Record<string, UserConfig> = {
         base: './',
         plugins: [
             etaPlugin({
-                styles: [
-                    '../styles/common.css',
-                    '../styles/demo.css'
-                ],
-                scripts: [
-                    './demo.ts'
-                ],
+                styles: [],
+                scripts: ['./demo.ts'],
+                isDev: true,
             })
         ],
+        build: {
+            rollupOptions: {
+                input: {
+                    demo: resolve(__dirname, 'src/demo/demo.ts'),
+                },
+            },
+        },
         server: {
             port: 3000,
             open: true,

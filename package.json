@@ -18,8 +18,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "dev:demo": "vite --mode demo",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --mode lib",
     "build:lib": "vite build --mode lib",
     "build:demo": "vite build --mode demo",
     "preview": "vite preview",
