@@ -60,41 +60,6 @@
         </svg>
         GitHub
     </a>
-
-    <script src="./dist/asciiground.umd.js"></script>
-    <script>
-        // Initialize ASCII background
-        document.addEventListener('DOMContentLoaded', function () {
-            const canvas = document.getElementById('ascii-bg');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            try {
-                // TODO: Remove body background after enabling the library again.
-
-                // const ascii = new ASCIIGround.default(canvas, {
-                //     pattern: 'perlin',
-                //     animation: false,
-                //     characters: [' ', '.', ':', ';', '+', '*', '#', '@'],
-                //     speed: 0.015,
-                //     fontSize: 14,
-                //     color: '#00ff41',
-                //     backgroundColor: '#000000'
-                // });
-
-                // ascii.start();
-
-                // window.addEventListener('resize', function () {
-                //     canvas.width = window.innerWidth;
-                //     canvas.height = window.innerHeight;
-                //     ascii.resize(canvas.width, canvas.height);
-                // });
-            } catch (error) {
-                console.error('Failed to initialize ASCIIGround:', error);
-                canvas.style.display = 'none';
-            }
-        });
-    </script>
 </body>
 
 </html>

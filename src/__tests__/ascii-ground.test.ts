@@ -145,6 +145,13 @@ describe('ASCIIGround', () => {
             ascii.startAnimation();
             expect(mockRequestAnimationFrame).toHaveBeenCalled();
         });
+
+        it('should handle japan-rain pattern', () => {
+            const options = { ...defaultOptions, pattern: 'japan-rain' as const, rainDensity: 0.5 };
+            const ascii = new ASCIIGround(canvas, options).init();
+            ascii.startAnimation();
+            expect(mockRequestAnimationFrame).toHaveBeenCalled();
+        });
     });
 
     describe('rendering and animation', () => {
