@@ -280,7 +280,13 @@ npm install
 npm run dev
 ```
 
-### Build library
+The development server automatically:
+- Generates demo pages from templates
+- Serves the demo with live library reloading
+- Opens the demo page in your browser
+- Watches for changes and hot-reloads
+
+### Building the library
 
 ```bash
 npm run build
@@ -344,7 +350,7 @@ Before pushing to production, ensure these secrets are configured in GitHub:
    - Go to repository Settings → Pages.
    - Set "Source" to "GitHub Actions".
 
-3. **Codecov** (optional) - for coverage reporting:
+3. **Codecov** - for coverage reporting:
    - Connect repository at [codecov.io](https://codecov.io).
    - Add `CODECOV_TOKEN` to repository secrets.
 

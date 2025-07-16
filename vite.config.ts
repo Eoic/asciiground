@@ -1,25 +1,90 @@
-import { defineConfig } from 'vite';
+import { defineConfig, UserConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+import { resolve } from 'path';
+import { etaPlugin } from './src/plugins/eta-plugin.ts';
 
-export default defineConfig({
-    plugins: [
-        dts({
-            insertTypesEntry: true,
-        })
-    ],
-    build: {
-        lib: {
-            entry: 'src/index.ts',
-            name: 'ASCIIGround',
-            formats: ['es', 'umd'],
-            fileName: (format) => `asciiground.${format}.js`,
+const config: Record<string, UserConfig> = {
+    'demo': {
+        root: 'src/demo',
+        base: './',
+        plugins: [
+            etaPlugin({
+                styles: [
+                    './common.css',
+                    './demo.css'
+                ],
+                scripts: [
+                    './demo.js'
+                ],
+            })
+        ],
+        build: {
+            outDir: '../../docs/demo',
+            emptyOutDir: true,
+            rollupOptions: {
+                input: {
+                    main: resolve(__dirname, 'src/demo/index.eta'),
+                    demo: resolve(__dirname, 'src/demo/demo.ts'),
+                },
+                output: {
+                    entryFileNames: '[name].js',
+                    assetFileNames: '[name][extname]',
+                    format: 'es',
+                    sourcemap: false,
+                },
+            },
+            copyPublicDir: false,
         },
-        rollupOptions: {
-            external: [],
-            output: {
-                globals: {},
-                exports: 'named',
+    },
+    'lib': {
+        plugins: [
+            dts({ insertTypesEntry: true })
+        ],
+        build: {
+            lib: {
+                entry: 'src/index.ts',
+                name: 'ASCIIGround',
+                formats: ['es', 'umd'],
+                fileName: (format) => `asciiground.${format}.js`,
+            },
+            rollupOptions: {
+                external: [],
+                output: {
+                    globals: {},
+                    exports: 'named',
+                },
             },
         },
     },
+    'default': {
+        root: 'src/demo',
+        base: './',
+        plugins: [
+            etaPlugin({
+                styles: [
+                    '../styles/common.css',
+                    '../styles/demo.css'
+                ],
+                scripts: [
+                    './demo.ts'
+                ],
+            })
+        ],
+        server: {
+            port: 3000,
+            open: true,
+        },
+        resolve: {
+            alias: {
+                '@': resolve(__dirname, 'src'),
+            },
+        },
+    },
+};
+
+export default defineConfig(({ mode }) => {
+    if (Object.keys(config).includes(mode))
+        return config[mode];
+
+    return config['default'];
 });
