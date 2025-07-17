@@ -1,0 +1,122 @@
+export interface PatternOptions {
+    fontSize: number;
+    fontFamily: string;
+    characters: string[];
+    backgroundColor: string;
+    animationSpeed: number;
+}
+
+export const DEFAULT_PATTERN_OPTIONS: PatternOptions = {
+    fontSize: 16,
+    fontFamily: 'monospace',
+    characters: ['█', '▓', '▒', '░', ' '],
+    backgroundColor: '#000000',
+    animationSpeed: 1,
+};
+
+/**
+ * Represents a single character to be rendered at a specific position.
+ */
+export interface CharacterData {
+    char: string;
+    x: number;
+    y: number;
+    color?: string;
+    opacity?: number;
+    scale?: number;
+    rotation?: number;
+}
+
+/**
+ * Rendering region that may extend beyond the visible area for complex effects.
+ */
+export interface RenderRegion {
+    rows: number;
+    columns: number;
+    startRow: number;
+    endRow: number;
+    startColumn: number;
+    endColumn: number;
+    charWidth: number;
+    charHeight: number;
+    canvasWidth: number;
+    canvasHeight: number;
+}
+
+/**
+ * Context for pattern generation.
+ */
+export interface PatternContext {
+    time: number;
+    deltaTime: number;
+    mouseX?: number;
+    mouseY?: number;
+    clicked?: boolean;
+    region: RenderRegion;
+}
+
+/**
+ * Base class for all pattern generators.
+ */
+export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> {
+    protected readonly _options: TOptions;
+
+    public get options(): TOptions {
+        return this._options;
+    }
+
+    constructor(options: Partial<TOptions> = {}) {
+        this._options = { ...DEFAULT_PATTERN_OPTIONS, ...options } as TOptions;
+    }
+
+    /**
+     * Generate characters for the given context.
+     * May render outside visible area for effects like blur or particle systems.
+     * 
+     * @param context - current rendering context with time, mouse position, etc.
+     * @returns Array of characters to render with their positions and properties
+     */
+    public abstract generate(context: PatternContext): CharacterData[];
+
+    /**
+     * Called when the pattern is initialized or resized.
+     * Use this to set up any internal state or precompute values.
+     * 
+     * @param region - the rendering region including visible area and padding.
+     */
+    public initialize(_region: RenderRegion): void {}
+
+    /**
+     * Called when the pattern is destroyed.
+     * Use this to clean up resources, cancel timers, etc.
+     */
+    public destroy(): void {}
+
+    /**
+     * Update pattern state between frames.
+     * Called before `generate()` on each frame.
+     * 
+     * @param context - current rendering context.
+     */
+    public update(_context: PatternContext): void {}
+
+    /**
+     * Handle mouse interactions with the pattern.
+     * Override to implement custom mouse effects.
+     * 
+     * @param x - mouse X position relative to canvas.
+     * @param y - mouse Y position relative to canvas.
+     * @param clicked - Whether mouse was clicked this frame.
+     */
+    public onMouseInteraction(_x: number, _y: number, _clicked: boolean): void {}
+
+    /**
+     * Get the recommended render padding for this pattern.
+     * Patterns that need to render outside visible area should override this.
+     * 
+     * @returns Number of extra characters to render outside visible area.
+     */
+    public getRecommendedPadding(): number {
+        return 0;
+    }
+}
