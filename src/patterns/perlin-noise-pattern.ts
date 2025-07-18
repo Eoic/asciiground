@@ -118,7 +118,7 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
             randomizer = (randomizer * 16807) % 2147483647;
             return randomizer / 2147483647;
         };
-      
+
         for (let i = 255; i > 0; i--) {
             const j = Math.floor(random() * (i + 1));
             const temp = table[i];
@@ -144,16 +144,6 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
     }
 
     /**
-     * Gradient function.
-     */
-    private _gradient(hash: number, x: number, y: number): number {
-        const h = hash & 15;
-        const u = h < 8 ? x : y;
-        const v = h < 4 ? y : h === 12 || h === 14 ? x : 0;
-        return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
-    }
-
-    /**
      * 3D gradient function.
      */
     private _gradient3D(hash: number, x: number, y: number, z: number): number {
@@ -161,41 +151,6 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
         const u = h < 8 ? x : y;
         const v = h < 4 ? y : h === 12 || h === 14 ? x : z;
         return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
-    }
-
-    /**
-     * Generate 2D Perlin noise at given coordinates.
-     */
-    public _noise(x: number, y: number): number {
-        const X = Math.floor(x) & 255;
-        const Y = Math.floor(y) & 255;
-
-        x -= Math.floor(x);
-        y -= Math.floor(y);
-        
-        const u = this._fade(x);
-        const v = this._fade(y);
-        
-        const a = (this._permutations[X] + Y) & 255;
-        const aa = this._permutations[a];
-        const ab = this._permutations[(a + 1) & 255];
-        const b = (this._permutations[(X + 1) & 255] + Y) & 255;
-        const ba = this._permutations[b];
-        const bb = this._permutations[(b + 1) & 255];
-
-        return this._lerp(
-            this._lerp(
-                this._gradient(this._permutations[aa], x, y),
-                this._gradient(this._permutations[ba], x - 1, y),
-                u
-            ),
-            this._lerp(
-                this._gradient(this._permutations[ab], x, y - 1),
-                this._gradient(this._permutations[bb], x - 1, y - 1),
-                u
-            ),
-            v
-        );
     }
 
     /**
@@ -209,11 +164,10 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
         x -= Math.floor(x);
         y -= Math.floor(y);
         z -= Math.floor(z);
-        
+
         const u = this._fade(x);
         const v = this._fade(y);
         const w = this._fade(z);
-        
         const a = (this._permutations[X] + Y) & 255;
         const aa = (this._permutations[a] + Z) & 255;
         const ab = (this._permutations[(a + 1) & 255] + Z) & 255;

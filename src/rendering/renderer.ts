@@ -194,12 +194,13 @@ export class WebGLRenderer implements Renderer {
     }
 
     public render(_characters: CharacterData[], _region: RenderRegion): void {
-        if (!this._isInitialized) return;
+        if (!this._isInitialized)
+            return;
 
         // TODO:
-        // 1. Create texture atlas for characters
-        // 2. Use instanced rendering for better performance
-        // 3. Implement proper batching
+        // 1. Create texture atlas for characters.
+        // 2. Use instanced rendering for better performance.
+        // 3. Implement proper batching.
         console.warn('WebGL renderer is not implemented, falling back to 2D canvas');
     }
 
@@ -278,7 +279,6 @@ export class WebGLRenderer implements Renderer {
 
         if (!gl.getProgramParameter(this._program, gl.LINK_STATUS)) 
             throw new Error('Failed to link WebGL program: ' + gl.getProgramInfoLog(this._program));
-        
 
         // Enable blending for transparency
         gl.enable(gl.BLEND);
