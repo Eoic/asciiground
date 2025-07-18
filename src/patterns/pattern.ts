@@ -1,16 +1,10 @@
 export interface PatternOptions {
-    fontSize: number;
-    fontFamily: string;
     characters: string[];
-    backgroundColor: string;
     animationSpeed: number;
 }
 
 export const DEFAULT_PATTERN_OPTIONS: PatternOptions = {
-    fontSize: 16,
-    fontFamily: 'monospace',
     characters: ['█', '▓', '▒', '░', ' '],
-    backgroundColor: '#000000',
     animationSpeed: 1,
 };
 
@@ -74,6 +68,7 @@ export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> 
      * May render outside visible area for effects like blur or particle systems.
      * 
      * @param context - current rendering context with time, mouse position, etc.
+     * @param previousOutput - previously rendered characters, if any.
      * @returns Array of characters to render with their positions and properties
      */
     public abstract generate(context: PatternContext): CharacterData[];

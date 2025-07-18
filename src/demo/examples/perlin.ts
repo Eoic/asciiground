@@ -1,20 +1,16 @@
-import { PerlinNoisePattern } from './patterns/perlin-noise-pattern';
-import { ASCIIRenderer } from './rendering/ascii-renderer';
+import { PerlinNoisePattern } from '../../patterns/perlin-noise-pattern';
+import { ASCIIRenderer } from '../../rendering/ascii-renderer';
 
 /**
  * Example usage of the new pattern-based rendering API
  */
-export function createPatternExample() {
+export function createPerlinExample() {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    
+
     const pattern = new PerlinNoisePattern({
-        // TODO: Remove.
-        fontSize: 32,
-        fontFamily: 'monospace',
         characters: ['.', '+', '#', '@'],
-        backgroundColor: '#000000',
         animationSpeed: 50,
         frequency: 0.05,
         octaves: 5,
@@ -22,7 +18,7 @@ export function createPatternExample() {
         lacunarity: 2.0,
         seed: 42,
     });
-    
+
     const renderer = new ASCIIRenderer(canvas, pattern, {
         fontSize: 32,
         fontFamily: 'monospace',
@@ -42,29 +38,23 @@ export function createPatternExample() {
 }
 
 /**
- * Example of creating a pattern with mouse interaction
+ * Example of switching between patterns.
  */
-export function createInteractiveExample() {
-    const { canvas, renderer, pattern } = createPatternExample();
+export function createPerlinSwitchExample() {
+    const { canvas, renderer } = createPerlinExample();
 
-    return {
-        canvas,
-        renderer,
-        pattern,
-    };
-}
-
-/**
- * Example of switching between patterns
- */
-export function createPatternSwitchExample() {
-    const { canvas, renderer } = createPatternExample();
+    const noisePattern = new PerlinNoisePattern({
+        characters: ['.', '+', '#', '@'],
+        animationSpeed: 50,
+        frequency: 0.05,
+        octaves: 5,
+        persistence: 0.5,
+        lacunarity: 2.0,
+        seed: 42,
+    });
 
     const wavePattern = new PerlinNoisePattern({
-        fontSize: 16,
-        fontFamily: 'monospace',
         characters: ['~', '-', '=', '#', '@'],
-        backgroundColor: '#000011',
         animationSpeed: 1,
         frequency: 0.05,
         octaves: 2,
@@ -73,7 +63,13 @@ export function createPatternSwitchExample() {
         seed: 123,
     });
 
-    setTimeout(() => renderer.setPattern(wavePattern), 5000);
+    let currentPatternIndex = 0;
+    const patterns = [noisePattern, wavePattern];
+
+    setInterval(() => {
+        currentPatternIndex = (currentPatternIndex + 1) % patterns.length;
+        renderer.setPattern(patterns[currentPatternIndex]);
+    }, 1000);
 
     return {
         canvas,

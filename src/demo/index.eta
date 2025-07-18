@@ -15,7 +15,7 @@
 </head>
 
 <body>
-    <div class="loading gradient-text" id="loading"> Loading ASCIIGround... </div>
+    <div class="loading gradient-text" id="loader"> Loading ASCIIGround... </div>
 
     <div class="header glass">
         <h1 class="gradient-text">

@@ -68,12 +68,13 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
      * Generate characters for the current frame using Perlin noise.
      * 
      * @param context - the current rendering context with time and region info
+     * @param previousOutput - previously rendered characters.
      * @returns Array of character data for rendering
      */
     public generate(context: PatternContext): CharacterData[] {
         const characters: CharacterData[] = [];
         const { region, time } = context;
-        
+
         for (let row = region.startRow; row < region.endRow; row++) {
             for (let col = region.startColumn; col < region.endColumn; col++) {
                 const noise = this._fractalNoise(
