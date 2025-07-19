@@ -26,7 +26,6 @@
 
     <form class="controls glass hidden" id="controls">
         <h2 class="gradient-text">Controls</h2>
-        <!-- Dynamic controls will be generated here -->
     </form>
 
     <% scripts.forEach(function(scriptPath) { %>

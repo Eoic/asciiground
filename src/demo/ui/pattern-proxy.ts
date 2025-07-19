@@ -1,315 +1,177 @@
-import type { Pattern } from '../../patterns/pattern';
+import { Pattern } from '../../patterns/pattern';
 import type { ASCIIRenderer, ASCIIRendererOptions } from '../../rendering/ascii-renderer';
 import { PerlinNoisePattern } from '../../patterns/perlin-noise-pattern';
 
-type ControlValue = string | number | boolean | string[];
-type ControlChangeCallback = (value: ControlValue) => void;
+export type ControlValue = string | number | boolean | string[];
+export type ControlChangeCallback = (value: ControlValue) => void;
+export type PatternConstructor = new (options?: Record<string, unknown>) => Pattern;
 
 /**
  * Proxy wrapper that manages pattern instances and connects them with UI controls.
  * Provides real-time updates and pattern switching capabilities.
  */
 export class PatternProxy {
-    private renderer: ASCIIRenderer;
-    private currentPattern: Pattern | null = null;
-    private currentPatternType: string = '';
-    private listeners: Map<string, ControlChangeCallback[]> = new Map();
+    private _renderer: ASCIIRenderer;
+    private _listeners: Map<string, ControlChangeCallback[]> = new Map();
+    private _patterns: Record<string, PatternConstructor> = this._createPatternRegistry();
+
+    /**
+     * Creates the pattern registry by mapping pattern constructors to their IDs.
+     * Add new patterns here to make them available for switching in the UI.
+     */
+    private _createPatternRegistry(): Record<string, PatternConstructor> {
+        const registry = [
+            PerlinNoisePattern
+        ].reduce((patterns, PatternClass) => ({ ...patterns, [PatternClass.ID]: PatternClass}), {});
+
+        return registry;
+    }
 
     constructor(renderer: ASCIIRenderer) {
-        this.renderer = renderer;
-        this.currentPattern = renderer.getPattern();
+        this._renderer = renderer;
     }
 
     /**
-     * Switch to a new pattern type and create a fresh instance.
+     * Get the current pattern ID.
      */
-    public switchPattern(patternType: string, initialOptions: Record<string, ControlValue> = {}): void {
-        if (this.currentPatternType === patternType) return;
+    public getCurrentPatternId(): string {
+        return this._renderer.pattern.id;
+    }
 
-        let newPattern: Pattern;
+    // /**
+    //  * Initialize with a default pattern if current pattern is dummy.
+    //  */
+    // public initializeDefaultPattern(): void {
+    //     console.log('Current pattern ID before initialization:', this._renderer.pattern.id);
+    //     if (this._renderer.pattern.id === 'dummy') {
+    //         const defaultPatternId = 'perlin-noise';
+    //         console.log('Switching to default pattern:', defaultPatternId);
+    //         this.switchPattern(defaultPatternId);
+    //         console.log('Pattern ID after switch:', this._renderer.pattern.id);
+    //     } else 
+    //         console.log('Pattern is already initialized, no switch needed');
+        
+    // }
 
-        // Create pattern based on type
-        switch (patternType) {
-            case 'perlin':
-                newPattern = this.createPerlinPattern(initialOptions);
-                break;
-            case 'static':
-                newPattern = this.createStaticPattern(initialOptions);
-                break;
-            case 'wave':
-                newPattern = this.createWavePattern(initialOptions);
-                break;
-            case 'rain':
-                newPattern = this.createRainPattern(initialOptions);
-                break;
-            case 'japan-rain':
-                newPattern = this.createJapanRainPattern(initialOptions);
-                break;
-            default:
-                console.warn(`Unknown pattern type: ${patternType}`);
-                return;
+    /**
+     * Switch to a new pattern type by creating and setting a new pattern instance.
+     */
+    public switchPattern(patternId: string): void {
+        // console.log('switchPattern called with:', patternId);
+        // console.log('Current pattern ID:', this._renderer.pattern.id);
+        // console.log('Available patterns:', Object.keys(this._patterns));
+        
+        if (this._renderer.pattern.id === patternId) {
+            console.warn(`Pattern "${patternId}" is already active.`);
+            return;
         }
 
-        // Switch renderer to new pattern
-        this.renderer.setPattern(newPattern);
-        this.currentPattern = newPattern;
-        this.currentPatternType = patternType;
+        const PatternConstructor = this._patterns[patternId];
 
-        console.log(`Switched to pattern: ${patternType}`);
+        if (!PatternConstructor) {
+            // console.error(`Pattern type "${patternId}" is not supported.`);
+            // console.error('Available patterns:', Object.keys(this._patterns));
+            throw new Error(`Pattern type "${patternId}" is not supported.`);
+        }
+
+        // console.log('Creating new pattern instance for:', patternId);
+        this._renderer.pattern = new PatternConstructor();
+        // console.log('Pattern switched to:', this._renderer.pattern.id);
     }
 
     /**
      * Update a specific property of the current pattern.
      */
-    public updatePatternProperty(propertyName: string, value: ControlValue): void {
-        if (!this.currentPattern) return;
-
-        const currentOptions: Record<string, any> = { ...this.currentPattern.options };
+    public _updatePatternProperty(propertyName: string, value: ControlValue): void {
+        let processedValue = value;
         
-        // Handle special cases for property transformation
-        switch (propertyName) {
-            case 'characters':
-                currentOptions[propertyName] = Array.isArray(value) ? value : String(value).split('');
-                break;
-            default:
-                // Use bracket notation for dynamic property access
-                currentOptions[propertyName] = value;
+        // Convert string characters to array for pattern compatibility
+        if (propertyName === 'characters' && typeof value === 'string') 
+            processedValue = value.split('');
+        
+
+        const options: Record<string, unknown> = {
+            ...this._renderer.pattern.options,
+            [propertyName]: processedValue,
+        };
+
+        const patternId = this._renderer.pattern.id;
+        const PatternConstructor = this._patterns[patternId];
+
+        if (!PatternConstructor) {
+            console.warn(`Cannot update pattern "${patternId}".`);
+            return;
         }
 
-        // Create new pattern instance with updated options
-        this.recreatePatternWithOptions(currentOptions);
+        this._renderer.pattern = new PatternConstructor(options);
     }
 
     /**
      * Update renderer options in real-time.
      */
-    public updateRendererProperty(propertyName: string, value: ControlValue): void {
-        const rendererOptions: Partial<ASCIIRendererOptions> = {};
-        
-        switch (propertyName) {
-            case 'fontSize':
-            case 'color':
-            case 'backgroundColor':
-            case 'fontFamily':
-                rendererOptions[propertyName] = value as any;
-                break;
-            case 'animationEnabled':
-                if (value) 
-                    this.renderer.startAnimation();
-                else 
-                    this.renderer.stopAnimation();
-                
-                return;
-        }
+    public _updateRendererProperty(propertyName: string, value: ControlValue): void {
+        const options: ASCIIRendererOptions = {
+            ...this._renderer.options,
+            [propertyName]: value,
+        };
 
-        if (Object.keys(rendererOptions).length > 0) 
-            this.renderer.updateOptions(rendererOptions);
-        
+        this._renderer.updateOptions(options);
     }
 
     /**
      * Handle any control change by routing to appropriate update method.
      */
-    public handleControlChange(controlId: string, value: ControlValue): void {
-        // Determine if this is a renderer or pattern property
-        const rendererProperties = ['fontSize', 'fontFamily', 'color', 'backgroundColor', 'animationEnabled'];
-        
+    public handleControlChange(controlCategory: string, controlId: string, value: ControlValue): void {
         if (controlId === 'pattern') {
-            // Pattern type change - switch entirely
             this.switchPattern(String(value));
-        } else if (rendererProperties.includes(controlId)) {
-            // Renderer property
-            this.updateRendererProperty(controlId, value);
-        } else {
-            // Pattern property
-            this.updatePatternProperty(controlId, value);
+            return;
         }
 
-        // Emit change event to any listeners
-        this.emitChange(controlId, value);
+        switch (controlCategory) {
+            case 'renderer':
+                this._updateRendererProperty(controlId, value);
+                break;
+            case 'pattern':
+                this._updatePatternProperty(controlId, value);
+                break;
+        }
+
+        this._emitChange(controlId, value);
     }
 
-    /**
-     * Get current pattern options for UI synchronization.
-     */
-    public getCurrentPatternOptions(): Record<string, ControlValue> {
-        if (!this.currentPattern) return {};
-        
-        const options = this.currentPattern.options;
+    public getRendererOptions(): Record<string, ControlValue> {
+        const options = this._renderer.options;
         const result: Record<string, ControlValue> = {};
-
-        // Convert options to control-friendly format
-        Object.entries(options).forEach(([key, value]) => {
-            if (key === 'characters' && Array.isArray(value)) 
-                result[key] = value.join('');
-            else 
-                result[key] = value as ControlValue;
-            
-        });
+        Object.entries(options).forEach(([key, value]) => result[key] = value as ControlValue);
 
         return result;
     }
 
     /**
-     * Get current renderer options for UI synchronization.
+     * Return options of the active pattern for UI synchronization.
+     * One could just return the pattern's options directly, but this method
+     * allows for future flexibility if we need to transform or filter options.
      */
-    public getCurrentRendererOptions(): Record<string, ControlValue> {
-        // Since renderer options are private, we'll use known defaults
-        // In a real implementation, you might expose these through the renderer
-        return {
-            fontSize: 36,
-            fontFamily: 'monospace',
-            color: '#4b18d8',
-            backgroundColor: '#0A0321',
-            animationEnabled: this.renderer.isAnimating,
-        };
-    }
+    public getPatternOptions(): Record<string, ControlValue> {
+        const options = this._renderer.pattern.options;
+        const result: Record<string, ControlValue> = {};
+        Object.entries(options).forEach(([key, value]) => result[key] = value as ControlValue);
 
-    /**
-     * Recreate the current pattern with updated options.
-     */
-    private recreatePatternWithOptions(newOptions: Record<string, any>): void {
-        if (!this.currentPatternType) return;
-
-        let newPattern: Pattern;
-
-        switch (this.currentPatternType) {
-            case 'perlin':
-                newPattern = new PerlinNoisePattern(newOptions);
-                break;
-            // Add other patterns here as they're implemented
-            default:
-                console.warn(`Cannot recreate pattern: ${this.currentPatternType}`);
-                return;
-        }
-
-        this.renderer.setPattern(newPattern);
-        this.currentPattern = newPattern;
-    }
-
-    /**
-     * Create Perlin noise pattern with options.
-     */
-    private createPerlinPattern(options: Record<string, ControlValue>): Pattern {
-        const perlinOptions: any = {
-            characters: ['.', '+', '#', '@'],
-            animationSpeed: 50,
-            frequency: 0.05,
-            octaves: 5,
-            persistence: 0.5,
-            lacunarity: 2.0,
-            seed: 42,
-            ...options,
-        };
-
-        // Ensure characters is an array
-        if (typeof perlinOptions.characters === 'string') 
-            perlinOptions.characters = perlinOptions.characters.split('');
-        
-
-        return new PerlinNoisePattern(perlinOptions);
-    }
-
-    /**
-     * Create static pattern (placeholder - implement when static pattern class exists).
-     */
-    private createStaticPattern(options: Record<string, ControlValue>): Pattern {
-        // For now, return a Perlin pattern with high frequency as a placeholder
-        return this.createPerlinPattern({
-            ...options,
-            frequency: 10,
-            animationSpeed: 100,
-        });
-    }
-
-    /**
-     * Create wave pattern (placeholder - implement when wave pattern class exists).
-     */
-    private createWavePattern(options: Record<string, ControlValue>): Pattern {
-        // For now, return a Perlin pattern as a placeholder
-        return this.createPerlinPattern({
-            ...options,
-            frequency: 0.1,
-            persistence: 0.8,
-        });
-    }
-
-    /**
-     * Create rain pattern (placeholder - implement when rain pattern class exists).
-     */
-    private createRainPattern(options: Record<string, ControlValue>): Pattern {
-        // For now, return a Perlin pattern as a placeholder
-        return this.createPerlinPattern({
-            ...options,
-            frequency: 0.2,
-            animationSpeed: 10,
-        });
-    }
-
-    /**
-     * Create Japan rain pattern (placeholder - implement when Japan rain pattern class exists).
-     */
-    private createJapanRainPattern(options: Record<string, ControlValue>): Pattern {
-        // For now, return a Perlin pattern as a placeholder
-        return this.createPerlinPattern({
-            ...options,
-            characters: ['ﾊ', 'ﾐ', 'ﾋ', 'ｰ', 'ｳ', 'ｼ', 'ﾅ', 'ﾓ', 'ﾆ', 'ｻ', 'ﾜ', 'ﾂ', 'ｵ', 'ﾘ', 'ｱ', 'ﾎ', 'ﾃ', 'ﾏ', 'ｹ', 'ﾒ', 'ｴ', 'ｶ', 'ｷ', 'ﾑ'],
-            animationSpeed: 7,
-        });
-    }
-
-    /**
-     * Add listener for control changes.
-     */
-    public addListener(controlId: string, callback: ControlChangeCallback): void {
-        if (!this.listeners.has(controlId)) 
-            this.listeners.set(controlId, []);
-        
-        this.listeners.get(controlId)!.push(callback);
-    }
-
-    /**
-     * Remove listener for a specific control.
-     */
-    public removeListener(controlId: string, callback: ControlChangeCallback): void {
-        const listeners = this.listeners.get(controlId);
-        if (listeners) {
-            const index = listeners.indexOf(callback);
-            if (index > -1) 
-                listeners.splice(index, 1);
-            
-        }
-    }
-
-    /**
-     * Emit change event to listeners.
-     */
-    private emitChange(controlId: string, value: ControlValue): void {
-        const listeners = this.listeners.get(controlId);
-        if (listeners) 
-            listeners.forEach(callback => callback(value));
-        
-    }
-
-    /**
-     * Get the current pattern type.
-     */
-    public getCurrentPatternType(): string {
-        return this.currentPatternType;
-    }
-
-    /**
-     * Get the current pattern instance.
-     */
-    public getCurrentPattern(): Pattern | null {
-        return this.currentPattern;
+        return result;
     }
 
     /**
      * Cleanup method.
      */
     public destroy(): void {
-        this.listeners.clear();
-        this.currentPattern = null;
+        this._listeners.clear();
+    }
+
+    /**
+     * Notify all listeners about a control value change.
+     */
+    private _emitChange(controlId: string, value: ControlValue): void {
+        const listeners = this._listeners.get(controlId) || [];
+        listeners.forEach(callback => callback(value));
     }
 }

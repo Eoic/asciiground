@@ -2,14 +2,11 @@ import { Pattern, type PatternOptions, type CharacterData, type PatternContext }
 
 /**
  * Options for configuring a Perlin noise pattern.
- *
  * @extends PatternOptions
- *
  * @property frequency - the base frequency of the Perlin noise. Higher values result in more rapid changes.
  * @property octaves - the number of noise layers to combine for fractal noise. More octaves add detail.
  * @property persistence - controls the amplitude of each octave. Lower values reduce the influence of higher octaves.
  * @property lacunarity - controls the frequency of each octave. Higher values increase the frequency 
- *                        for each successive octave.
  * @property seed - the seed value for random number generation used to ensure reproducible noise patterns.
  */
 interface PerlinNoisePatternOptions extends PatternOptions {
@@ -36,6 +33,8 @@ const DEFAULT_PERLIN_OPTIONS: Required<
  * Supports multiple octaves for fractal noise generation.
  */
 export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
+    public static readonly ID = 'perlin-noise';
+
     /**
      * Stores a permutation table used for generating Perlin noise.
      * This array contains a shuffled sequence of numbers and is used to
@@ -103,7 +102,7 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
      * Get recommended padding for smooth edge effects.
      * Perlin noise benefits from a small padding for seamless patterns.
      */
-    public getRecommendedPadding(): number {
+    public getRecommendedPadding(): number | null {
         return 1;
     }
 

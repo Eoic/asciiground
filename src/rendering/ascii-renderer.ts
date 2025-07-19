@@ -11,6 +11,16 @@ export interface ASCIIRendererOptions {
     enableMouseInteraction?: boolean;
 }
 
+const DEFAULT_OPTIONS: ASCIIRendererOptions = {
+    color: '#3e3e80ff',
+    fontSize: 32,
+    fontFamily: 'monospace',
+    backgroundColor: '#181818ff',
+    renderPadding: 0,
+    rendererType: '2D',
+    enableMouseInteraction: false,
+};
+
 /**
  * Main ASCII renderer that coordinates pattern generation with rendering.
  * Supports both 2D canvas and WebGL rendering with automatic fallback.
@@ -28,34 +38,44 @@ export class ASCIIRenderer {
     private _mouseY: number = 0;
     private _mouseClicked: boolean = false;
 
+    public get options(): ASCIIRendererOptions {
+        return this._options;
+    }
+
+    public get pattern(): Pattern {
+        return this._pattern;
+    }
+
+    public set pattern(pattern: Pattern) {
+        this._pattern.destroy();
+        this._pattern = pattern;
+        this._pattern.initialize(this._region);
+    }
+
+    public get isAnimating(): boolean {
+        return this._isAnimating;
+    }
+
     /**
      * Create a new ASCII renderer.
-     * 
      * @param canvas - the canvas element to render to.
      * @param pattern - the pattern generator to use.
      * @param options - rendering options.
      */
-    constructor(
-        canvas: HTMLCanvasElement, 
-        pattern: Pattern, 
-        options: ASCIIRendererOptions
-    ) {
+    constructor(canvas: HTMLCanvasElement, pattern: Pattern, options: Partial<ASCIIRendererOptions> = {}) {
         this._canvas = canvas;
         this._pattern = pattern;
 
         this._options = {
-            enableMouseInteraction: true,
-            renderPadding: 0,
+            ...DEFAULT_OPTIONS,
             ...options,
+            renderPadding: this._pattern.getRecommendedPadding() || DEFAULT_OPTIONS.renderPadding,
         };
 
-        if (this._options.renderPadding === 0) 
-            this._options.renderPadding = this._pattern.getRecommendedPadding();
-
-        this._renderer = createRenderer(options.rendererType || '2D');
+        this._renderer = createRenderer(this._options.rendererType || '2D');
         this._region = this._calculateRegion();
         this._setupRenderer();
-        
+
         if (this._options.enableMouseInteraction) 
             this._setupMouseEvents();
     }
@@ -184,12 +204,8 @@ export class ASCIIRenderer {
      */
     public updateOptions(options: Partial<ASCIIRendererOptions>): void {
         this._options = { ...this._options, ...options };
-
-        if (options.fontSize !== undefined || options.fontFamily !== undefined) {
-            this._region = this._calculateRegion();
-            this._pattern.initialize(this._region);
-        }
-
+        this._region = this._calculateRegion();
+        this._pattern.initialize(this._region);
         this._renderer.options = this._options;
     }
 
@@ -205,29 +221,6 @@ export class ASCIIRenderer {
 
         if (!this._isAnimating) 
             this.render();
-    }
-
-    /**
-     * Change the active pattern.
-     */
-    public setPattern(pattern: Pattern): void {
-        this._pattern.destroy();
-        this._pattern = pattern;
-        this._pattern.initialize(this._region);
-    }
-
-    /**
-     * Get current pattern.
-     */
-    public getPattern(): Pattern {
-        return this._pattern;
-    }
-
-    /**
-     * Check if animation is running.
-     */
-    public get isAnimating(): boolean {
-        return this._isAnimating;
     }
 
     /**

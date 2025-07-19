@@ -40,40 +40,40 @@ export function createPerlinExample() {
 /**
  * Example of switching between patterns.
  */
-export function createPerlinSwitchExample() {
-    const { canvas, renderer } = createPerlinExample();
+// export function createPerlinSwitchExample() {
+//     const { canvas, renderer } = createPerlinExample();
 
-    const noisePattern = new PerlinNoisePattern({
-        characters: ['.', '+', '#', '@'],
-        animationSpeed: 50,
-        frequency: 0.05,
-        octaves: 5,
-        persistence: 0.5,
-        lacunarity: 2.0,
-        seed: 42,
-    });
+//     const noisePattern = new PerlinNoisePattern({
+//         characters: ['.', '+', '#', '@'],
+//         animationSpeed: 50,
+//         frequency: 0.05,
+//         octaves: 5,
+//         persistence: 0.5,
+//         lacunarity: 2.0,
+//         seed: 42,
+//     });
 
-    const wavePattern = new PerlinNoisePattern({
-        characters: ['~', '-', '=', '#', '@'],
-        animationSpeed: 1,
-        frequency: 0.05,
-        octaves: 2,
-        persistence: 0.8,
-        lacunarity: 1.5,
-        seed: 123,
-    });
+//     const wavePattern = new PerlinNoisePattern({
+//         characters: ['~', '-', '=', '#', '@'],
+//         animationSpeed: 1,
+//         frequency: 0.05,
+//         octaves: 2,
+//         persistence: 0.8,
+//         lacunarity: 1.5,
+//         seed: 123,
+//     });
 
-    let currentPatternIndex = 0;
-    const patterns = [noisePattern, wavePattern];
+//     let currentPatternIndex = 0;
+//     const patterns = [noisePattern, wavePattern];
 
-    setInterval(() => {
-        currentPatternIndex = (currentPatternIndex + 1) % patterns.length;
-        renderer.setPattern(patterns[currentPatternIndex]);
-    }, 1000);
+//     setInterval(() => {
+//         currentPatternIndex = (currentPatternIndex + 1) % patterns.length;
+//         renderer.setPattern(patterns[currentPatternIndex]);
+//     }, 1000);
 
-    return {
-        canvas,
-        renderer,
-        switchPattern: (pattern: PerlinNoisePattern) => renderer.setPattern(pattern),
-    };
-}
+//     return {
+//         canvas,
+//         renderer,
+//         switchPattern: (pattern: PerlinNoisePattern) => renderer.setPattern(pattern),
+//     };
+// }
