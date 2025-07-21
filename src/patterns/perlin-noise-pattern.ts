@@ -63,19 +63,24 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
         this._permutations = this._generatePermutations(this._options.seed);
     }
 
+    public update(_context: PatternContext): PerlinNoisePattern {
+        return this;
+    }
+
     /**
      * Generate characters for the current frame using Perlin noise.
-     * 
      * @param context - the current rendering context with time and region info
-     * @param previousOutput - previously rendered characters.
      * @returns Array of character data for rendering
      */
     public generate(context: PatternContext): CharacterData[] {
+        if (this.options.characters.length === 0)
+            return [];
+
         const characters: CharacterData[] = [];
         const { region, time } = context;
 
-        for (let row = region.startRow; row < region.endRow; row++) {
-            for (let col = region.startColumn; col < region.endColumn; col++) {
+        for (let row = region.startRow; row <= region.endRow; row++) {
+            for (let col = region.startColumn; col <= region.endColumn; col++) {
                 const noise = this._fractalNoise(
                     col * this._options.frequency,
                     row * this._options.frequency,
@@ -102,7 +107,7 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
      * Get recommended padding for smooth edge effects.
      * Perlin noise benefits from a small padding for seamless patterns.
      */
-    public getRecommendedPadding(): number | null {
+    public getRecommendedPadding(): number {
         return 1;
     }
 

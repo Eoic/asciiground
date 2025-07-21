@@ -8,10 +8,15 @@ export type DummyPatternOptions = PatternOptions
  * without a specific pattern, and in order to avoid doing missing pattern checks.
  */
 export class DummyPattern extends Pattern<DummyPatternOptions> {
+
     public static readonly ID = 'dummy';
 
     constructor(options: Partial<DummyPatternOptions> = {}) {
         super(options);
+    }
+
+    public update(_context: PatternContext): DummyPattern {
+        return this;
     }
 
     public generate(_context: PatternContext): CharacterData[] {

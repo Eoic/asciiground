@@ -4,6 +4,7 @@ import { type Renderer, createRenderer } from './renderer';
 
 export interface ASCIIRendererOptions {
     color: string;
+    animated: boolean;
     fontSize: number;
     fontFamily: string;
     backgroundColor: string;
@@ -20,6 +21,7 @@ const DEFAULT_OPTIONS: ASCIIRendererOptions = {
     renderPadding: 0,
     rendererType: '2D',
     enableMouseInteraction: false,
+    animated: false,
 };
 
 /**
@@ -34,7 +36,6 @@ export class ASCIIRenderer {
     private _options: ASCIIRendererOptions;
     private _lastTime: number = 0;
     private _animationId: number | null = null;
-    private _isAnimating: boolean = false;
     private _mouseX: number = 0;
     private _mouseY: number = 0;
     private _mouseClicked: boolean = false;
@@ -54,7 +55,7 @@ export class ASCIIRenderer {
     }
 
     public get isAnimating(): boolean {
-        return this._isAnimating;
+        return this._options.animated;
     }
 
     /**
@@ -160,9 +161,7 @@ export class ASCIIRenderer {
         };
 
         this._mouseClicked = false;
-        this._pattern.update(context);
-
-        const characters = this._pattern.generate(context);
+        const characters = this._pattern.update(context).generate(context);
         this._renderer.clear(this._options.backgroundColor);
         this._renderer.render(characters, this._region);
     }
@@ -171,14 +170,11 @@ export class ASCIIRenderer {
      * Start animation loop.
      */
     public startAnimation(): void {
-        if (this._isAnimating)
-            return;
-
-        this._isAnimating = true;
+        this._options.animated = true;
         this._lastTime = performance.now();
 
         const animate = (time: number) => {
-            if (!this._isAnimating)
+            if (!this.isAnimating)
                 return;
 
             this.render(time);
@@ -192,12 +188,22 @@ export class ASCIIRenderer {
      * Stop animation loop.
      */
     public stopAnimation(): void {
-        this._isAnimating = false;
+        this._options.animated = false;
 
         if (this._animationId !== null) {
             cancelAnimationFrame(this._animationId);
             this._animationId = null;
         }
+    }
+
+    /**
+     * Synchronize animation state with the current options.
+     * This ensures that the renderer reflects the current animation settings.
+     */
+    public syncAnimationState(): void {
+        if (this.isAnimating) 
+            this.startAnimation();
+        else this.stopAnimation();
     }
 
     /**
@@ -208,6 +214,7 @@ export class ASCIIRenderer {
         this._region = this._calculateRegion();
         this._pattern.initialize(this._region);
         this._renderer.options = this._options;
+        this.syncAnimationState();
     }
 
     /**
@@ -220,7 +227,7 @@ export class ASCIIRenderer {
         this._renderer.resize(width, height);
         this._pattern.initialize(this._region);
 
-        if (!this._isAnimating) 
+        if (!this.isAnimating) 
             this.render();
     }
 

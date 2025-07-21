@@ -23,7 +23,6 @@ export class ControlUIGenerator {
         this._createPatternSelector(patternType);
         this._createControlsSection(rendererConfig.controls);
         this._createControlsSection(patternConfig.controls);
-        this._createAnimationToggle();
     }
 
     /**
@@ -155,24 +154,6 @@ export class ControlUIGenerator {
     }
 
     /**
-     * Create animation toggle control.
-     */
-    private _createAnimationToggle(): void {
-        const control: ControlSpec = {
-            id: 'animation',
-            label: 'Animation',
-            type: 'checkbox',
-            value: true,
-            category: 'renderer',
-            description: 'Enable or disable animation.',
-        };
-
-        const controlElement = this._createControl(control);
-        controlElement.classList.add('animation-toggle');
-        this._container.appendChild(controlElement);
-    }
-
-    /**
      * Create a single control element based on its specification.
      */
     private _createControl(spec: ControlSpec): HTMLElement {
@@ -209,12 +190,11 @@ export class ControlUIGenerator {
                 input = this._createSelectInput(spec);
                 break;
             case 'checkbox':
-                input = this._createCheckboxInput(spec);
+                [inputContainer, input] = this._createCheckboxInput(spec);
                 break;
             default:
                 input = this._createTextInput(spec);
         }
-
 
         input.setAttribute('data-control-id', spec.id);
         input.setAttribute('id', `${spec.category}-${spec.id}`);
@@ -314,7 +294,7 @@ export class ControlUIGenerator {
     /**
      * Create checkbox input.
      */
-    private _createCheckboxInput(spec: ControlSpec): HTMLElement {
+    private _createCheckboxInput(spec: ControlSpec): [HTMLDivElement, HTMLInputElement] {
         const container = document.createElement('div');
         container.className = 'toggle-switch';
 
@@ -328,7 +308,7 @@ export class ControlUIGenerator {
         container.appendChild(input);
         container.appendChild(slider);
 
-        return container;
+        return [container, input];
     }
 
     /**

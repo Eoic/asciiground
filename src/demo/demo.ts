@@ -16,8 +16,12 @@ import { ASCIIRenderer } from '../rendering/ascii-renderer';
         document.body.appendChild(canvas);
         handleControls(controls, renderer);
         handleResize(renderer);
-        startAnimation(renderer);
+        render(renderer);
         removeLoader(loader);
+    }
+
+    function render(renderer: ASCIIRenderer) {
+        renderer.render();
     }
 
     function handleResize(renderer: ASCIIRenderer) {
@@ -29,10 +33,6 @@ import { ASCIIRenderer } from '../rendering/ascii-renderer';
         controls.classList.remove('hidden');
         controlsManager.switchPattern('perlin-noise');
         window.controlsManager = controlsManager;
-    }
-
-    function startAnimation(renderer: ASCIIRenderer) {
-        renderer.startAnimation();
     }
 
     function removeLoader(loader: HTMLElement) {

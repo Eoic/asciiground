@@ -95,7 +95,7 @@ export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> 
      * Called before `generate()` on each frame.
      * @param context - current rendering context.
      */
-    public update(_context: PatternContext): void {}
+    public abstract update(_context: PatternContext): Pattern
 
     /**
      * Handle mouse interactions with the pattern.
@@ -111,7 +111,7 @@ export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> 
      * Patterns that need to render outside visible area should override this.
      * @returns Number of extra characters to render outside visible area.
      */
-    public getRecommendedPadding(): number | null {
-        return null;
+    public getRecommendedPadding(): number {
+        return 0;
     }
 }

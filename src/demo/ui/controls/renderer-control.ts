@@ -40,5 +40,12 @@ export const controls: RendererControlConfig = {
         value: '#313131',
         category: 'renderer',
         description: 'Background color of the canvas.',
+    }, {
+        id: 'animated',
+        label: 'Animated',
+        type: 'checkbox',
+        value: false,
+        category: 'renderer',
+        description: 'Enable or disable animation for the renderer.',
     }],
 };

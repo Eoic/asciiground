@@ -35,6 +35,7 @@ export class PatternProxy {
 
         const [PatternConstructor, defaultOptions] = this._getPattern(patternId);
         this._renderer.pattern = new PatternConstructor(defaultOptions);
+        this._renderer.render();
     }
 
     /**
@@ -59,7 +60,9 @@ export class PatternProxy {
             return;
         }
 
+        // FIXME: Debounce, 200ms.
         this._renderer.pattern = new PatternConstructor(options);
+        requestAnimationFrame(() => this._renderer.render());
     }
 
     /**
@@ -71,7 +74,9 @@ export class PatternProxy {
             [propertyName]: value,
         };
 
+        // FIXME: Debounce, 200ms.
         this._renderer.updateOptions(options);
+        requestAnimationFrame(() => this._renderer.render());
     }
 
     /**
