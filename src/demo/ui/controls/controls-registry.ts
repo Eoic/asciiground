@@ -4,7 +4,13 @@
 
 import { controls as perlinControls } from './perlin-noise-control';
 import { controls as rendererControls } from './renderer-control';
+import { controls as dummyControls } from './dummy-control';
 import { PerlinNoisePattern } from '../../../patterns/perlin-noise-pattern';
+import { DummyPattern } from '../../../patterns/dummy-pattern';
+import type { Pattern } from '../../../patterns/pattern';
+import type { ControlValue } from '../pattern-proxy';
+
+export type PatternConstructor = new (options?: Record<string, unknown>) => Pattern;
 
 export interface ControlSpec {
     id: string;
@@ -22,6 +28,7 @@ export interface ControlSpec {
 export interface PatternControlConfig {
     label: string;
     controls: ControlSpec[];
+    pattern: PatternConstructor;
 }
 
 export interface RendererControlConfig {
@@ -32,10 +39,11 @@ export interface RendererControlConfig {
 /**
  * Registry of all control configurations for different patterns and renderer options.
  */
-export class ControlRegistry {
+export class ControlsRegistry {
     private static readonly _RENDERER_CONTROLS: RendererControlConfig = rendererControls;
 
     private static readonly _PATTERN_CONTROLS: Record<string, PatternControlConfig> = {
+        [DummyPattern.ID]: dummyControls,
         [PerlinNoisePattern.ID]: perlinControls,
     };
 
@@ -49,8 +57,33 @@ export class ControlRegistry {
     /**
      * Get controls configuration for a specific pattern.
      */
-    public static getPatternControls(patternType: string): PatternControlConfig | null {
-        return this._PATTERN_CONTROLS[patternType] || null;
+    public static getPatternControls(patternType: string): PatternControlConfig {
+        if (!this._PATTERN_CONTROLS[patternType])
+            throw new Error(`Pattern controls for "${patternType}" not found.`);
+
+        return this._PATTERN_CONTROLS[patternType];
+    }
+
+    /**
+     * Get pattern options for a specific pattern type.
+     */
+    public static getPatternOptions(patternType: string): Record<string, ControlValue> {
+        const patternConfig = this.getPatternControls(patternType);
+
+        return patternConfig.controls.reduce((options, control) => {
+            options[control.id] = control.value;
+            return options;
+        }, {} as Record<string, ControlValue>);
+    }
+
+    /**
+     * Get renderer options.
+     */
+    public static getRendererOptions(): Record<string, ControlValue> {
+        return this._RENDERER_CONTROLS.controls.reduce((options, control) => {
+            options[control.id] = control.value;
+            return options;
+        }, {} as Record<string, ControlValue>);
     }
 
     /**

@@ -1,4 +1,4 @@
-import { ControlRegistry, type ControlSpec } from './controls/controls-registry';
+import { ControlsRegistry, type ControlSpec } from './controls/controls-registry';
 import type { ControlValue } from './pattern-proxy';
 
 /**
@@ -17,22 +17,13 @@ export class ControlUIGenerator {
      * Generate controls for a specific pattern type.
      */
     public generatePatternControls(patternType: string): void {
-        // this._clearControls();
-
-        const patternConfig = ControlRegistry.getPatternControls(patternType);
-        const rendererConfig = ControlRegistry.getRendererControls();
-
-        if (!patternConfig) {
-            console.warn(`No controls found for pattern: ${patternType}.`);
-            return;
-        }
-
+        this._clearControls();
+        const patternConfig = ControlsRegistry.getPatternControls(patternType);
+        const rendererConfig = ControlsRegistry.getRendererControls();
         this._createPatternSelector(patternType);
         this._createControlsSection(rendererConfig.controls);
         this._createControlsSection(patternConfig.controls);
         this._createAnimationToggle();
-
-        // this._addContainerListeners();
     }
 
     /**
@@ -50,14 +41,6 @@ export class ControlUIGenerator {
      */
     public removeControlListeners(controlId: string): void {
         this._listeners.delete(controlId);
-    }
-
-    /**
-     * Remove all listeners.
-     */
-    public removeAllListeners(): void {
-        this._listeners.clear();
-        this._removeContainerListeners();
     }
 
     /**
@@ -115,7 +98,7 @@ export class ControlUIGenerator {
         const values: Record<string, ControlValue | null> = {};
         const controls = this._container.querySelectorAll('[data-control-id]');
 
-        controls.forEach(control => {
+        controls.forEach((control) => {
             const controlId = control.getAttribute('data-control-id');
 
             if (controlId)
@@ -130,14 +113,6 @@ export class ControlUIGenerator {
      */
     private _addContainerListeners(): void {
         this._container.addEventListener('input', this._handleControlInput);
-    }
-
-    /**
-     * Remove listeners from the container for control changes.
-     */
-    private _removeContainerListeners(): void {
-        console.trace('Removing all listeners from container');
-        this._container.removeEventListener('input', this._handleControlInput);
     }
 
     /**
@@ -162,7 +137,7 @@ export class ControlUIGenerator {
      * Create pattern selector dropdown.
      */
     private _createPatternSelector(currentPattern: string): void {
-        const patterns = ControlRegistry.getAvailablePatterns();
+        const patterns = ControlsRegistry.getAvailablePatterns();
 
         const control: ControlSpec = {
             id: 'pattern',
@@ -202,6 +177,7 @@ export class ControlUIGenerator {
      */
     private _createControl(spec: ControlSpec): HTMLElement {
         let input: HTMLElement;
+        let inputContainer: HTMLDivElement | null = null;
         const label = document.createElement('label');
         label.className = `control-item control-${spec.type}`;
         label.setAttribute('data-control-id', spec.id);
@@ -218,7 +194,7 @@ export class ControlUIGenerator {
         switch (spec.type) {
             case 'number':
             case 'range':
-                input = this._createNumberInput(spec);
+                [inputContainer, input] = this._createNumberInput(spec);
                 break;
             case 'text':
                 input = this._createTextInput(spec);
@@ -239,10 +215,15 @@ export class ControlUIGenerator {
                 input = this._createTextInput(spec);
         }
 
+
         input.setAttribute('data-control-id', spec.id);
         input.setAttribute('id', `${spec.category}-${spec.id}`);
         input.setAttribute('name', spec.id);
-        label.appendChild(input);
+
+        if (inputContainer) {
+            inputContainer.setAttribute('data-control-id', spec.id);
+            label.appendChild(inputContainer);
+        } else label.appendChild(input);
 
         return label;
     }
@@ -250,7 +231,7 @@ export class ControlUIGenerator {
     /**
      * Create number/range input.
      */
-    private _createNumberInput(spec: ControlSpec): HTMLInputElement | HTMLDivElement {
+    private _createNumberInput(spec: ControlSpec): [HTMLInputElement | HTMLDivElement, HTMLInputElement] {
         const input = document.createElement('input');
         input.type = spec.type === 'range' ? 'range' : 'number';
         input.value = String(spec.value);
@@ -275,10 +256,10 @@ export class ControlUIGenerator {
             container.appendChild(input);
             container.appendChild(valueDisplay);
 
-            return container;
+            return [container, input];
         }
 
-        return input;
+        return [input, input];
     }
 
     /**
@@ -354,13 +335,14 @@ export class ControlUIGenerator {
      * Handle control value changes.
      */
     private _handleControlInput = (event: Event): void => {
-        console.log(event);
         let value: ControlValue;
         const target = event.target as HTMLInputElement;
         const controlId = target.getAttribute('data-control-id');
 
-        if (!controlId)
+        if (!controlId) {
+            console.warn(`Control ${controlId} not found for input:`, target);
             return;
+        }
 
         switch (target.type) {
             case 'checkbox':
@@ -382,6 +364,5 @@ export class ControlUIGenerator {
      */
     private _clearControls(): void {
         this._container.innerHTML = '';
-        this.removeAllListeners();
     }
 }

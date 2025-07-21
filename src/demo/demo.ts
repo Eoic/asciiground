@@ -2,7 +2,6 @@ import '../../docs/styles/common.css';
 import '../../docs/styles/demo.css';
 import { createPatternControls } from './ui/config-generator';
 import { ASCIIRenderer } from '../rendering/ascii-renderer';
-import { DummyPattern } from '../patterns/dummy-pattern';
 
 (() => {
     function start() {
@@ -10,7 +9,7 @@ import { DummyPattern } from '../patterns/dummy-pattern';
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const renderer = new ASCIIRenderer(canvas, new DummyPattern());
+        const renderer = new ASCIIRenderer(canvas);
         const loader = document.getElementById('loader') as HTMLElement;
         const controls = document.getElementById('controls') as HTMLFormElement;
 
@@ -28,6 +27,7 @@ import { DummyPattern } from '../patterns/dummy-pattern';
     function handleControls(controls: HTMLFormElement, renderer: ASCIIRenderer) {
         const controlsManager = createPatternControls(controls, renderer);
         controls.classList.remove('hidden');
+        controlsManager.switchPattern('perlin-noise');
         window.controlsManager = controlsManager;
     }
 

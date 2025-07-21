@@ -1,3 +1,4 @@
+import { DummyPattern } from '../patterns/dummy-pattern';
 import { Pattern, type PatternContext, type RenderRegion } from '../patterns/pattern';
 import { type Renderer, createRenderer } from './renderer';
 
@@ -62,9 +63,9 @@ export class ASCIIRenderer {
      * @param pattern - the pattern generator to use.
      * @param options - rendering options.
      */
-    constructor(canvas: HTMLCanvasElement, pattern: Pattern, options: Partial<ASCIIRendererOptions> = {}) {
+    constructor(canvas: HTMLCanvasElement, pattern?: Pattern, options: Partial<ASCIIRendererOptions> = {}) {
         this._canvas = canvas;
-        this._pattern = pattern;
+        this._pattern = pattern || new DummyPattern();
 
         this._options = {
             ...DEFAULT_OPTIONS,

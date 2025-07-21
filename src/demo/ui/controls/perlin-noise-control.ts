@@ -1,7 +1,9 @@
+import { PerlinNoisePattern } from '../../../patterns/perlin-noise-pattern';
 import type { PatternControlConfig } from './controls-registry';
 
 export const controls: PatternControlConfig = {
     label: 'Perlin noise',
+    pattern: PerlinNoisePattern,
     controls: [
         {
             id: 'characters',
