@@ -61,9 +61,10 @@ export class PatternProxy {
             return;
         }
 
-        // FIXME: Debounce, 200ms.
+        // FIXME: Add proper debouncing, 200ms.
         this._renderer.pattern = new PatternConstructor(options);
         requestAnimationFrame(() => this._renderer.render());
+        console.log(`Pattern property "${propertyName}" updated to:`, processedValue);
     }
 
     /**
@@ -75,9 +76,10 @@ export class PatternProxy {
             [propertyName]: value,
         };
 
-        // FIXME: Debounce, 200ms.
+        // FIXME: Add proper debouncing, 200ms.
         this._renderer.updateOptions(options);
         requestAnimationFrame(() => this._renderer.render());
+        console.log(`Renderer property "${propertyName}" updated to:`, value);
     }
 
     /**

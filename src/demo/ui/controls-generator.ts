@@ -4,7 +4,7 @@ import type { ControlValue } from './pattern-proxy';
 /**
  * Dynamic UI generator that creates controls based on pattern specifications.
  */
-export class ControlUIGenerator {
+export class ControlsGenerator {
     private _container: HTMLFormElement;
     private _listeners: Map<string, Array<(value: ControlValue) => void>> = new Map();
 
@@ -33,6 +33,18 @@ export class ControlUIGenerator {
             this._listeners.set(controlId, []);
 
         this._listeners.get(controlId)!.push(callback);
+    }
+
+    /**
+     * Remove listener for control changes.
+     */
+    public offControlChange(controlId: string): void {
+        if (this._listeners.has(controlId)) {
+            this._listeners.delete(controlId);
+            return;
+        }
+
+        console.warn(`No listeners found for control: ${controlId}`);
     }
 
     /**

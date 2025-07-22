@@ -1,5 +1,5 @@
 import type { ASCIIRenderer } from '../../rendering/ascii-renderer';
-import { ControlUIGenerator } from './controls-generator';
+import { ControlsGenerator } from './controls-generator';
 import { PatternProxy, type ControlValue } from './pattern-proxy';
 import { ControlsRegistry } from './controls/controls-registry';
 
@@ -9,13 +9,13 @@ import { ControlsRegistry } from './controls/controls-registry';
  */
 export class PatternControlsManager {
     private _patternProxy: PatternProxy;
-    private _uiGenerator: ControlUIGenerator;
+    private _controlsGenerator: ControlsGenerator;
 
     constructor(controlsContainer: HTMLFormElement, renderer: ASCIIRenderer) {
-        this._uiGenerator = new ControlUIGenerator(controlsContainer);
+        this._controlsGenerator = new ControlsGenerator(controlsContainer);
         this._patternProxy = new PatternProxy(renderer);
         const currentPatternId = this._patternProxy.getCurrentPatternId();
-        this._uiGenerator.generatePatternControls(currentPatternId);
+        this._controlsGenerator.generatePatternControls(currentPatternId);
         this._setupEventListeners();
         this._synchronizeUI();
     }
@@ -31,35 +31,48 @@ export class PatternControlsManager {
      * Add custom control change listener.
      */
     public onControlChange(controlId: string, callback: (value: ControlValue) => void): void {
-        this._uiGenerator.onControlChange(controlId, callback);
+        this._controlsGenerator.onControlChange(controlId, callback);
     }
 
     /**
      * Setup event listeners between UI and pattern proxy.
      */
     private _setupEventListeners(): void {
-        this._setupControlChangeListeners();
-        this._uiGenerator.onControlChange('pattern', (value: ControlValue) => this._handlePatternChange(String(value)));
+        this._addControlChangeListeners();
+
+        this._controlsGenerator
+            .onControlChange('pattern', (value: ControlValue) => this._handlePatternChange(String(value)));
+
+        ControlsRegistry.getRendererControls().controls.forEach((control) => {
+            this._controlsGenerator.onControlChange((control.id), (value: ControlValue) => {
+                this._patternProxy.handleControlChange(control.category, control.id, value);
+            });
+        }); 
     }
 
     /**
      * Setup listeners for all control types.
      */
-    private _setupControlChangeListeners(): void {
-        const rendererConfig = ControlsRegistry.getRendererControls();
+    private _addControlChangeListeners(): void {
         const currentPatternId = this._patternProxy.getCurrentPatternId();
         const patternConfig = ControlsRegistry.getPatternControls(currentPatternId);
 
-        rendererConfig.controls.forEach((control) => {
-            this._uiGenerator.onControlChange((control.id), (value: ControlValue) => {
+        patternConfig.controls.forEach((control) => {
+            this._controlsGenerator.onControlChange((control.id), (value) => {
                 this._patternProxy.handleControlChange(control.category, control.id, value);
             });
         });
-    
+    }
+
+    /**
+     * Remove all control change listeners from the active pattern.
+     */
+    private _removeControlChangeListeners(): void {
+        const currentPatternId = this._patternProxy.getCurrentPatternId();
+        const patternConfig = ControlsRegistry.getPatternControls(currentPatternId);
+
         patternConfig.controls.forEach((control) => {
-            this._uiGenerator.onControlChange((control.id), (value) => {
-                this._patternProxy.handleControlChange(control.category, control.id, value);
-            });
+            this._controlsGenerator.offControlChange((control.id));
         });
     }
 
@@ -68,9 +81,10 @@ export class PatternControlsManager {
      * @param patternType - the new pattern type to switch to.
      */
     private _handlePatternChange(patternType: string): void {
+        this._removeControlChangeListeners();
         this._patternProxy.switchPattern(patternType);
-        this._uiGenerator.generatePatternControls(patternType);
-        this._setupControlChangeListeners();
+        this._controlsGenerator.generatePatternControls(patternType);
+        this._addControlChangeListeners();
         this._synchronizeUI();
     }
 
@@ -86,10 +100,10 @@ export class PatternControlsManager {
             ...patternOptions,
             ...rendererOptions,
         }).forEach(([key, value]) => {
-            this._uiGenerator.setControlValue(key, value);
+            this._controlsGenerator.setControlValue(key, value);
         });
 
-        this._uiGenerator.setControlValue('pattern', currentPatternId);
+        this._controlsGenerator.setControlValue('pattern', currentPatternId);
     }
 }
 
