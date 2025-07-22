@@ -35,6 +35,7 @@ export class PatternProxy {
 
         const [PatternConstructor, defaultOptions] = this._getPattern(patternId);
         this._renderer.pattern = new PatternConstructor(defaultOptions);
+        this._renderer.updateOptions(ControlsRegistry.getRendererOptions());
         this._renderer.render();
     }
 
