@@ -40,7 +40,7 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
      * This array contains a shuffled sequence of numbers and is used to
      * determine gradient directions and hashing in algorithm.
      */
-    private readonly _permutations: number[];
+    private _permutations: number[];
 
     private get _frequency(): number {
         return this._options.frequency;
@@ -61,6 +61,17 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
     constructor(options: Partial<PerlinNoisePatternOptions> = {}) {
         super({ ...DEFAULT_PERLIN_OPTIONS, ...options });
         this._permutations = this._generatePermutations(this._options.seed);
+    }
+
+    /**
+     * Update options while preserving expensive permutation table when possible.
+     */
+    public updateOptions(newOptions: Partial<PerlinNoisePatternOptions>): void {
+        const oldSeed = this._options.seed;
+        super.updateOptions(newOptions);
+
+        if (newOptions.seed !== undefined && newOptions.seed !== oldSeed)
+            this._permutations = this._generatePermutations(this._options.seed);
     }
 
     public update(_context: PatternContext): PerlinNoisePattern {

@@ -39,6 +39,8 @@ export class ASCIIRenderer {
     private _mouseX: number = 0;
     private _mouseY: number = 0;
     private _mouseClicked: boolean = false;
+    private _tempCanvas: HTMLCanvasElement | null = null;
+    private _tempContext: CanvasRenderingContext2D | null = null;
 
     public get options(): ASCIIRendererOptions {
         return this._options;
@@ -83,11 +85,14 @@ export class ASCIIRenderer {
     }
 
     private _calculateRegion(): RenderRegion {
-        const tempCanvas = document.createElement('canvas');
-        const tempContext = tempCanvas.getContext('2d')!;
-        tempContext.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
+        if (!this._tempCanvas) {
+            this._tempCanvas = document.createElement('canvas');
+            this._tempContext = this._tempCanvas.getContext('2d')!;
+        }
 
-        const metrics = tempContext.measureText('M');
+        this._tempContext!.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
+
+        const metrics = this._tempContext!.measureText('M');
         const charWidth = metrics.width;
         const charHeight = this._options.fontSize;
         const cols = Math.floor(this._canvas.width / charWidth);
@@ -209,12 +214,26 @@ export class ASCIIRenderer {
     /**
      * Update rendering options.
      */
-    public updateOptions(options: Partial<ASCIIRendererOptions>): void {
-        this._options = { ...this._options, ...options };
-        this._region = this._calculateRegion();
-        this._pattern.initialize(this._region);
+    public updateOptions(newOptions: Partial<ASCIIRendererOptions>): void {
+        const oldOptions = this._options;
+        this._options = { ...oldOptions, ...newOptions };
+
+        if (this._isRegionRebuildNeeded(oldOptions, this._options)) {
+            this._region = this._calculateRegion();
+            this._pattern.initialize(this._region);
+        }
+        
         this._renderer.options = this._options;
         this.syncAnimationState();
+    }
+
+    /**
+     * Check if region recalculation is needed based on option changes.
+     */
+    private _isRegionRebuildNeeded(oldOptions: ASCIIRendererOptions, newOptions: ASCIIRendererOptions): boolean {
+        return oldOptions.fontSize !== newOptions.fontSize ||
+               oldOptions.fontFamily !== newOptions.fontFamily ||
+               oldOptions.renderPadding !== newOptions.renderPadding;
     }
 
     /**
@@ -240,5 +259,7 @@ export class ASCIIRenderer {
         this._renderer.destroy();
         this._canvas.removeEventListener('mousemove', this._mouseMoveHandler);
         this._canvas.removeEventListener('click', this._mouseClickHandler);
+        this._tempCanvas = null;
+        this._tempContext = null;
     }
 }

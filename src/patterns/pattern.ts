@@ -54,7 +54,7 @@ export interface PatternContext {
  */
 export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> {
     public static readonly ID: string;
-    protected readonly _options: TOptions;
+    protected _options: TOptions;
 
     public get id(): string {
         return (this.constructor as typeof Pattern).ID;
@@ -66,6 +66,15 @@ export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> 
 
     constructor(options: Partial<TOptions> = {}) {
         this._options = { ...DEFAULT_PATTERN_OPTIONS, ...options } as TOptions;
+    }
+
+    /**
+     * Update pattern options without recreating the pattern instance.
+     * Override this method if your pattern has expensive initialization that should be preserved.
+     * @param newOptions - partial options to update
+     */
+    public updateOptions(newOptions: Partial<TOptions>): void {
+        this._options = { ...this._options, ...newOptions };
     }
 
     /**
