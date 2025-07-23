@@ -106,7 +106,7 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
                     char: this._options.characters[clampedIndex],
                     x: col * region.charWidth,
                     y: row * region.charHeight,
-                    opacity: Math.max(0.3, normalizedValue),
+                    opacity: normalizedValue,
                 });
             }
         }

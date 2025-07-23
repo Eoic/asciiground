@@ -90,7 +90,9 @@ export class PatternProxy {
         
         this._pendingPatternUpdates = {};
         this._pendingRendererUpdates = {};
-        requestAnimationFrame(() => this._renderer.render());
+        
+        if (!this._renderer.isAnimating) 
+            requestAnimationFrame(() => this._renderer.render());
     }
 
     /**
@@ -128,7 +130,6 @@ export class PatternProxy {
      * Update renderer with accumulated changes.
      */
     private _updateRenderer(): void {
-        // Apply all pending renderer updates directly to avoid type issues
         const pendingUpdates = this._pendingRendererUpdates as Partial<ASCIIRendererOptions>;
         this._renderer.updateOptions(pendingUpdates);
     }
@@ -166,7 +167,6 @@ export class PatternProxy {
         const options = this._renderer.pattern.options;
         const result: Record<string, ControlValue> = {};
         Object.entries(options).forEach(([key, value]) => result[key] = value as ControlValue);
-
         return result;
     }
 

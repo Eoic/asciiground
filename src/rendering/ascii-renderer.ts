@@ -206,9 +206,10 @@ export class ASCIIRenderer {
      * This ensures that the renderer reflects the current animation settings.
      */
     public syncAnimationState(): void {
-        if (this.isAnimating) 
+        if (this._options.animated && this._animationId === null)
             this.startAnimation();
-        else this.stopAnimation();
+        else if (!this._options.animated && this._animationId !== null) 
+            this.stopAnimation();
     }
 
     /**
@@ -217,23 +218,10 @@ export class ASCIIRenderer {
     public updateOptions(newOptions: Partial<ASCIIRendererOptions>): void {
         const oldOptions = this._options;
         this._options = { ...oldOptions, ...newOptions };
-
-        if (this._isRegionRebuildNeeded(oldOptions, this._options)) {
-            this._region = this._calculateRegion();
-            this._pattern.initialize(this._region);
-        }
-        
+        this._region = this._calculateRegion();
+        this._pattern.initialize(this._region);
         this._renderer.options = this._options;
         this.syncAnimationState();
-    }
-
-    /**
-     * Check if region recalculation is needed based on option changes.
-     */
-    private _isRegionRebuildNeeded(oldOptions: ASCIIRendererOptions, newOptions: ASCIIRendererOptions): boolean {
-        return oldOptions.fontSize !== newOptions.fontSize ||
-               oldOptions.fontFamily !== newOptions.fontFamily ||
-               oldOptions.renderPadding !== newOptions.renderPadding;
     }
 
     /**
