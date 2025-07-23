@@ -126,9 +126,8 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
      * Generate a proper permutation table for Perlin noise.
      */
     private _generatePermutations(seed: number): number[] {
-        const table: number[] = Array.from({ length: 256 }, (_, i) => i);
-        
         let randomizer = seed;
+        const table: number[] = Array.from({ length: 256 }, (_, i) => i);
 
         const random = () => {
             randomizer = (randomizer * 16807) % 2147483647;

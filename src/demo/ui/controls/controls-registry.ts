@@ -5,10 +5,12 @@
 import { controls as perlinControls } from './perlin-noise-control';
 import { controls as rendererControls } from './renderer-control';
 import { controls as dummyControls } from './dummy-control';
+import { controls as staticControls } from './static-control';
 import { PerlinNoisePattern } from '../../../patterns/perlin-noise-pattern';
 import { DummyPattern } from '../../../patterns/dummy-pattern';
 import type { Pattern } from '../../../patterns/pattern';
 import type { ControlValue } from '../pattern-proxy';
+import { StaticNoisePattern } from '../../../patterns/static-noise-pattern';
 
 export type PatternConstructor = new (options?: Record<string, unknown>) => Pattern;
 
@@ -45,6 +47,7 @@ export class ControlsRegistry {
     private static readonly _PATTERN_CONTROLS: Record<string, PatternControlConfig> = {
         [DummyPattern.ID]: dummyControls,
         [PerlinNoisePattern.ID]: perlinControls,
+        [StaticNoisePattern.ID]: staticControls,
     };
 
     /**

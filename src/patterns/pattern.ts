@@ -12,9 +12,9 @@ export const DEFAULT_PATTERN_OPTIONS: PatternOptions = {
  * Represents a single character to be rendered at a specific position.
  */
 export interface CharacterData {
-    char: string;
     x: number;
     y: number;
+    char: string;
     color?: string;
     opacity?: number;
     scale?: number;
