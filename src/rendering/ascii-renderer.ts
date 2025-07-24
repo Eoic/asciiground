@@ -36,6 +36,7 @@ export class ASCIIRenderer {
     private _options: ASCIIRendererOptions;
     private _lastTime: number = 0;
     private _animationId: number | null = null;
+    private _animationTime: number = 0;
     private _mouseX: number = 0;
     private _mouseY: number = 0;
     private _mouseClicked: boolean = false;
@@ -54,6 +55,7 @@ export class ASCIIRenderer {
         this._pattern.destroy();
         this._pattern = pattern;
         this._pattern.initialize(this._region);
+        this.resetAnimationTime();
     }
 
     public get isAnimating(): boolean {
@@ -92,7 +94,7 @@ export class ASCIIRenderer {
 
         this._tempContext!.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
 
-        const metrics = this._tempContext!.measureText('M');
+        const metrics = this._tempContext!.measureText('Ｍ');
         const charWidth = metrics.width;
         const charHeight = this._options.fontSize;
         const cols = Math.floor(this._canvas.width / charWidth);
@@ -156,13 +158,18 @@ export class ASCIIRenderer {
         const deltaTime = time - this._lastTime;
         this._lastTime = time;
 
+        if (this._options.animated)
+            this._animationTime += (deltaTime / 1000) * this._pattern.options.animationSpeed;
+
         const context: PatternContext = {
-            time: time / 1000,
+            time: this._animationTime,
             deltaTime: deltaTime / 1000,
+            animationTime: this._animationTime,
             region: this._region,
             mouseX: this._mouseX,
             mouseY: this._mouseY,
             clicked: this._mouseClicked,
+            isAnimating: this._options.animated,
         };
 
         this._mouseClicked = false;
@@ -199,6 +206,14 @@ export class ASCIIRenderer {
             cancelAnimationFrame(this._animationId);
             this._animationId = null;
         }
+    }
+
+    /**
+     * Reset the animation time to zero.
+     * Useful when restarting animations or switching patterns.
+     */
+    public resetAnimationTime(): void {
+        this._animationTime = 0;
     }
 
     /**

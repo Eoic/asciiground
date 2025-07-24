@@ -83,19 +83,18 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
      * @param context - the current rendering context with time and region info
      * @returns Array of character data for rendering
      */
-    public generate(context: PatternContext): CharacterData[] {
+    public generate({ animationTime, region }: PatternContext): CharacterData[] {
         if (this.options.characters.length === 0)
             return [];
 
         const characters: CharacterData[] = [];
-        const { region, time } = context;
 
         for (let row = region.startRow; row <= region.endRow; row++) {
             for (let col = region.startColumn; col <= region.endColumn; col++) {
                 const noise = this._fractalNoise(
                     col * this._options.frequency,
                     row * this._options.frequency,
-                    time * this._options.animationSpeed * 0.001
+                    animationTime * 0.001
                 );
 
                 const normalizedValue = Math.max(0, Math.min(1, (noise + 1) / 2));

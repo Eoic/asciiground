@@ -31,10 +31,9 @@ export class StaticNoisePattern extends Pattern<StaticNoisePatternOptions> {
         return this;
     }
 
-    public generate(context: PatternContext): CharacterData[] {
+    public generate({ region, animationTime }: PatternContext): CharacterData[] {
         const characters: CharacterData[] = [];
-        const { region } = context;
-        const randomizer = createSeededRandom(this._options.seed);
+        const randomizer = createSeededRandom(this._options.seed + Math.floor(animationTime * 10));
 
         for (let row = region.startRow; row <= region.endRow; row++) {
             for (let col = region.startColumn; col <= region.endColumn; col++) {

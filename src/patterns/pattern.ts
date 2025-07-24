@@ -43,9 +43,11 @@ export interface RenderRegion {
 export interface PatternContext {
     time: number;
     deltaTime: number;
+    animationTime: number;
     mouseX?: number;
     mouseY?: number;
     clicked?: boolean;
+    isAnimating?: boolean;
     region: RenderRegion;
 }
 
