@@ -94,13 +94,43 @@ export class ASCIIRenderer {
 
         this._tempContext!.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
 
-        const metrics = this._tempContext!.measureText('Ｍ');
-        const charWidth = metrics.width;
-        const charHeight = this._options.fontSize;
-        const cols = Math.floor(this._canvas.width / charWidth);
-        const rows = Math.floor(this._canvas.height / charHeight);
-        const padding = this._options.renderPadding || 0;
+        // For character width, we need to account for the widest characters that might appear.
+        // Use a representative set of wide ASCII characters to prevent overlap.
+        const widthTestChars = ['M', 'W', '@', '#', '0', '8'];
+        let maxCharWidth = 0;
+
+        for (const char of widthTestChars) {
+            const metrics = this._tempContext!.measureText(char);
+            maxCharWidth = Math.max(maxCharWidth, metrics.width);
+        }
         
+        const charWidth = maxCharWidth;
+        
+        // Calculate safe rendering height to prevent character overlap.
+        // Use a representative string that includes characters with ascenders and descenders
+        // to ensure we capture the full vertical range needed for any ASCII character.
+        const heightMetrics = this._tempContext!.measureText('Áy@|');
+        const measuredHeight = heightMetrics.actualBoundingBoxAscent + heightMetrics.actualBoundingBoxDescent;
+        
+        // Ensure minimum line height based on font size to prevent overlap.
+        // Use 1.2x font size as minimum, which is a standard line height multiplier
+        // that provides adequate spacing between text lines.
+        const minLineHeight = this._options.fontSize * 1.2;
+        const charHeight = Math.max(measuredHeight, minLineHeight);
+        
+        // Calculate tighter spacing for grid positioning to fill the screen better.
+        // Use a slightly reduced vertical spacing while ensuring no overlap.
+        const charSpacingY = Math.max(measuredHeight * 0.9, this._options.fontSize * 0.9);
+        
+        // For horizontal spacing, use the measured max width for non-monospace fonts
+        // and apply consistent spacing for monospace fonts.
+        const isMonospace = this._options.fontFamily === 'monospace';
+        const charSpacingX = isMonospace ? Math.max(charWidth, charSpacingY * 0.6) : charWidth;
+        
+        const padding = this._options.renderPadding || 0;
+        const cols = Math.floor((this._canvas.width - padding * 2) / charSpacingX);
+        const rows = Math.floor((this._canvas.height - padding * 2) / charSpacingY);
+
         return {
             startColumn: -padding,
             endColumn: cols + padding,
@@ -110,6 +140,8 @@ export class ASCIIRenderer {
             rows,
             charWidth,
             charHeight,
+            charSpacingX,
+            charSpacingY,
             canvasWidth: this._canvas.width,
             canvasHeight: this._canvas.height,
         };

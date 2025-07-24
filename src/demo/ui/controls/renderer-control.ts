@@ -20,9 +20,9 @@ export const controls: RendererControlConfig = {
         options: [
             { value: 'monospace', label: 'Monospace' },
             { value: 'Courier New', label: 'Courier New' },
-            { value: 'Consolas', label: 'Consolas' },
-            { value: 'Monaco', label: 'Monaco' },
-            { value: 'Menlo', label: 'Menlo' }
+            { value: 'Menlo', label: 'Menlo' },
+            { value: 'Arial', label: 'Arial' },
+            { value: 'Verdana', label: 'Verdana' }
         ],
         category: 'renderer',
         description: 'Font family used for rendering characters.',

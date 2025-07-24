@@ -103,8 +103,8 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
                 
                 characters.push({
                     char: this._options.characters[clampedIndex],
-                    x: col * region.charWidth,
-                    y: row * region.charHeight,
+                    x: col * region.charSpacingX,
+                    y: row * region.charSpacingY,
                     opacity: normalizedValue,
                 });
             }

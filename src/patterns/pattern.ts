@@ -33,6 +33,8 @@ export interface RenderRegion {
     endColumn: number;
     charWidth: number;
     charHeight: number;
+    charSpacingX: number;
+    charSpacingY: number;
     canvasWidth: number;
     canvasHeight: number;
 }

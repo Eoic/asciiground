@@ -42,8 +42,8 @@ export class StaticNoisePattern extends Pattern<StaticNoisePatternOptions> {
 
                 characters.push({
                     char,
-                    x: col * region.charWidth,
-                    y: row * region.charHeight,
+                    x: col * region.charSpacingX,
+                    y: row * region.charSpacingY,
                 });
             }
         }

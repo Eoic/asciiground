@@ -88,10 +88,10 @@ export class Canvas2DRenderer implements Renderer {
             this._context.beginPath();
 
             this._context.rect(
-                region.startColumn * region.charWidth,
-                region.startRow * region.charHeight,
-                (region.endColumn - region.startColumn) * region.charWidth,
-                (region.endRow - region.startRow) * region.charHeight
+                region.startColumn * region.charSpacingX,
+                region.startRow * region.charSpacingY,
+                (region.endColumn - region.startColumn) * region.charSpacingX,
+                (region.endRow - region.startRow) * region.charSpacingY
             );
 
             this._context.clip();
