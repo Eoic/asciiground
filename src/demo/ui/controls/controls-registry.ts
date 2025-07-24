@@ -6,8 +6,10 @@ import { controls as perlinControls } from './perlin-noise-control';
 import { controls as rendererControls } from './renderer-control';
 import { controls as dummyControls } from './dummy-control';
 import { controls as staticControls } from './static-control';
+import { controls as japaneseRainControls } from './japanese-rain-control';
 import { PerlinNoisePattern } from '../../../patterns/perlin-noise-pattern';
 import { DummyPattern } from '../../../patterns/dummy-pattern';
+import { JapaneseRainPattern } from '../../../patterns/japanese-rain-pattern';
 import type { Pattern } from '../../../patterns/pattern';
 import type { ControlValue } from '../pattern-proxy';
 import { StaticNoisePattern } from '../../../patterns/static-noise-pattern';
@@ -48,6 +50,7 @@ export class ControlsRegistry {
         [DummyPattern.ID]: dummyControls,
         [PerlinNoisePattern.ID]: perlinControls,
         [StaticNoisePattern.ID]: staticControls,
+        [JapaneseRainPattern.ID]: japaneseRainControls,
     };
 
     /**

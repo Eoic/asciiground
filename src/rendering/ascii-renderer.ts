@@ -97,6 +97,17 @@ export class ASCIIRenderer {
         // For character width, we need to account for the widest characters that might appear.
         // Use a representative set of wide ASCII characters to prevent overlap.
         const widthTestChars = ['M', 'W', '@', '#', '0', '8'];
+        
+        // Also test common Japanese characters if pattern uses them
+        const patternChars = Array.isArray(this._pattern.options.characters) 
+            ? this._pattern.options.characters.join('') 
+            : (this._pattern.options.characters || '');
+        const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(patternChars);
+        if (hasJapanese) {
+            // Add wide Japanese characters for testing
+            widthTestChars.push('あ', 'ア', '漢', '龍', 'Ｍ', 'Ｗ');
+        }
+        
         let maxCharWidth = 0;
 
         for (const char of widthTestChars) {
@@ -125,7 +136,11 @@ export class ASCIIRenderer {
         // For horizontal spacing, use the measured max width for non-monospace fonts
         // and apply consistent spacing for monospace fonts.
         const isMonospace = this._options.fontFamily === 'monospace';
-        const charSpacingX = isMonospace ? Math.max(charWidth, charSpacingY * 0.6) : charWidth;
+        let charSpacingX = isMonospace ? Math.max(charWidth, charSpacingY * 0.6) : charWidth;
+        
+        // Add extra spacing for Japanese characters to prevent overlap
+        if (hasJapanese)
+            charSpacingX *= 1.1; // 10% extra spacing for Japanese characters
         
         const padding = this._options.renderPadding || 0;
         const cols = Math.floor((this._canvas.width - padding * 2) / charSpacingX);
