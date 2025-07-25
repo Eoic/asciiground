@@ -107,30 +107,23 @@ export class ASCIIRenderer {
             this._setupMouseEvents();
     }
 
-    private _calculateRegion(): RenderRegion {
-        if (!this._tempCanvas) {
-            this._tempCanvas = document.createElement('canvas');
-            this._tempContext = this._tempCanvas.getContext('2d')!;
-        }
-
-        this._tempContext!.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
-
-        // Calculate character dimensions for auto-spacing
-        const widthTestChars = ['M', 'W', '@', '#', '0', '8'];
+    /**
+     * Calculate character spacing based on font metrics.
+     * @returns A tuple containing the character width, height, and spacing sizes.
+     */
+    private _calculateSpacing(): [number, number, number, number] {
         let maxCharWidth = 0;
 
-        for (const char of widthTestChars) {
+        for (const char of this._pattern.options.characters) {
             const metrics = this._tempContext!.measureText(char);
             maxCharWidth = Math.max(maxCharWidth, metrics.width);
         }
 
-        // Calculate safe rendering height for auto-spacing
         const charWidth = maxCharWidth;
-        const heightMetrics = this._tempContext!.measureText('Áy@|');
+        const heightMetrics = this._tempContext!.measureText(this.pattern.options.characters.join(''));
         const measuredHeight = heightMetrics.actualBoundingBoxAscent + heightMetrics.actualBoundingBoxDescent;
         const charHeight = Math.max(measuredHeight, this._options.fontSize);
 
-        // Use user-specified spacing or calculate automatically
         const charSpacingX = (this._options.charSpacingX && this._options.charSpacingX > 0) 
             ? this._options.charSpacingX 
             : charWidth;
@@ -138,7 +131,18 @@ export class ASCIIRenderer {
         const charSpacingY = (this._options.charSpacingY && this._options.charSpacingY > 0) 
             ? this._options.charSpacingY 
             : Math.max(charHeight, this._options.fontSize * 1.2);
-        
+
+        return [charWidth, charHeight, charSpacingX, charSpacingY];
+    }
+
+    private _calculateRegion(): RenderRegion {
+        if (!this._tempCanvas) {
+            this._tempCanvas = document.createElement('canvas');
+            this._tempContext = this._tempCanvas.getContext('2d')!;
+        }
+
+        this._tempContext!.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
+        const [charWidth, charHeight, charSpacingX, charSpacingY] = this._calculateSpacing();
         const cols = Math.floor((this._canvas.width / charSpacingX));
         const rows = Math.floor((this._canvas.height / charSpacingY));
 

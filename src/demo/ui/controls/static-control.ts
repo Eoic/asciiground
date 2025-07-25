@@ -9,7 +9,8 @@ export const controls: PatternControlConfig = {
             id: 'characters',
             label: 'Characters',
             type: 'text',
-            value: '.*#',
+            outType: 'array',
+            value: '█▓▒░',
             category: 'pattern',
             description: 'Characters used for rendering.',
         }

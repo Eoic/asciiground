@@ -27,6 +27,7 @@ export interface ControlSpec {
     category: 'renderer' | 'pattern';
     options?: Array<{ value: string | number | boolean; label: string }>;
     type: 'number' | 'text' | 'color' | 'select' | 'range' | 'checkbox' | 'textarea';
+    outType: 'string' | 'number' | 'boolean' | 'array';
     visibleOn?: Array<{ [key: string]: string | number | boolean }>;
 }
 
@@ -98,6 +99,24 @@ export class ControlsRegistry {
         return specs;
     }
 
+    public static parseOutType(
+        value: ControlSpec['value'],
+        outType: 'string' | 'number' | 'boolean' | 'array'
+    ): ControlValue {
+        switch (outType) {
+            case 'string':
+                return String(value);
+            case 'number':
+                return Number(value);
+            case 'boolean':
+                return Boolean(value);
+            case 'array':
+                return Array.from(String(value));
+            default:
+                throw new Error('Unknown outType!');
+        }
+    }
+
     /**
      * Get pattern options for a specific pattern type.
      */
@@ -105,7 +124,7 @@ export class ControlsRegistry {
         const patternConfig = this.getPatternControls(patternType);
 
         return patternConfig.controls.reduce((options, control) => {
-            options[control.id] = control.value;
+            options[control.id] = ControlsRegistry.parseOutType(control.value, control.outType);
             return options;
         }, {} as Record<string, ControlValue>);
     }

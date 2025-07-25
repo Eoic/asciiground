@@ -63,7 +63,7 @@ export class ControlsGenerator {
         if (!element)
             return null;
 
-        return this._parseControlValue(element);
+        return this._parseControlValue(element, controlId);
     }
 
     /**
@@ -146,6 +146,7 @@ export class ControlsGenerator {
             id: 'pattern',
             label: 'Pattern',
             type: 'select',
+            outType: 'string',
             value: currentPattern,
             options: patterns,
             category: 'renderer',
@@ -331,53 +332,23 @@ export class ControlsGenerator {
         return [container, input];
     }
 
-    // private _updateVisibilities() {
-    //     const inputs = this._container.querySelectorAll('input[data-control-id], select[data-control-id]');
-    //     const controls = ControlsRegistry.getAllControlsSpecs();
+    private _parseControlValue(target: HTMLInputElement | HTMLSelectElement, controlId: string): ControlValue {
+        const controlSpec = ControlsRegistry.getControlSpec(controlId);
 
-    //     inputs.forEach((input) => {
-    //         const controlId = input.getAttribute('data-control-id');
+        if (!controlSpec)
+            return target.value as ControlValue;
 
-    //         if (!controlId) {
-    //             console.error('Control ID not found for input:', input);
-    //             return;
-    //         }
-        
-    //         const value = this.getControlValue(controlId);
+        switch (controlSpec.outType) {
+            case 'boolean':
+                if (target.type === 'checkbox')
+                    return target.checked;
 
-    //         if (value === null) {
-    //             console.error(`Control value for "${controlId}" is null.`);
-    //             return;
-    //         }
-
-
-    //     });
-
-
-    // for (const control of controls) {
-    //     if (!control.visibleOn)
-    //         continue;
-
-    //     const conditions = control.visibleOn.filter((condition) => condition[controlId] !== undefined) ?? [];
-
-    //     if (conditions.length === 0)
-    //         continue;
-
-    //     const isVisible = conditions.some((condition) => condition[controlId] === value);
-
-    //     this._container
-    //         .querySelector(`label[data-control-id="${control.id}"]`)
-    //         ?.classList.toggle('hidden', !isVisible);
-    // }
-    // }
-
-    private _parseControlValue(target: HTMLInputElement | HTMLSelectElement): ControlValue {
-        switch (target.type) {
-            case 'checkbox':
-                return target.checked;
+                return Boolean(target.value);
             case 'number':
-            case 'range':
                 return parseFloat(target.value);
+            case 'array':
+                return Array.from(target.value);
+            case 'string':
             default:
                 return target.value;
         }
@@ -395,9 +366,7 @@ export class ControlsGenerator {
             return;
         }
 
-        const value = this._parseControlValue(target);
-
-        // Dynamic controls.
+        const value = this._parseControlValue(target, controlId);
         const controls = ControlsRegistry.getAllControlsSpecs();
 
         for (const control of controls) {
@@ -415,7 +384,6 @@ export class ControlsGenerator {
                 .querySelector(`label[data-control-id="${control.id}"]`)
                 ?.classList.toggle('hidden', !isVisible);
         }
-        // ---
 
         this._emitChange(controlId, value);
     };

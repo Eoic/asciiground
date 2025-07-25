@@ -44,12 +44,12 @@ const DEFAULT_JAPANESE_RAIN_OPTIONS: Required<
  * Represents a single rain drop falling down the screen.
  */
 interface RainDrop {
+    y: number;
     column: number;
-    y: number; // Current Y position
     speed: number;
-    characters: string[];
     length: number;
     lastMutationTime: number;
+    characters: string[];
 }
 
 /**
@@ -59,12 +59,11 @@ interface RainDrop {
  * @returns A character for the rain effect
  */
 function generateJapaneseCharacter(availableChars?: string[] | string): string {
-    // Use provided characters if available and non-empty
     if (availableChars && (Array.isArray(availableChars) ? availableChars.length > 0 : availableChars.length > 0)) {
-        // Handle string input (convert to array of characters)
         const chars = typeof availableChars === 'string' 
             ? Array.from(availableChars) 
             : availableChars;
+
         return chars[Math.floor(Math.random() * chars.length)];
     }
 
@@ -346,15 +345,14 @@ export class JapaneseRainPattern extends Pattern<JapaneseRainPatternOptions> {
     public updateOptions(newOptions: Partial<JapaneseRainPatternOptions>): void {
         super.updateOptions(newOptions);
         
-        // Reinitialize if density changed significantly
         if (newOptions.rainDensity !== undefined && this._region) 
             this._maintainRainDensity();
-        
-        // Regenerate characters for existing drops if characters option changed
+
         if (newOptions.characters !== undefined) {
             for (const drop of this._rainDrops) {
-                drop.characters = Array.from({ length: drop.length }, () => 
-                    generateJapaneseCharacter(this._options.characters)
+                drop.characters = Array.from(
+                    { length: drop.length },
+                    () => generateJapaneseCharacter(this._options.characters)
                 );
             }
         }

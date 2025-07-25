@@ -104,14 +104,14 @@ body {
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     cursor: pointer;
-    border: 2px solid #ffffff;
+    border: 2px solid #3a3a3a;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
 }
 
 .controls input[type="range"]::-webkit-slider-thumb:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6), 0 0 0 2px #3a3a3a;
 }
 
 .controls input[type="range"]::-webkit-slider-thumb:active {
@@ -176,9 +176,9 @@ body {
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
-.controls input[type="text"]:hover,
-.controls input[type="number"]:hover,
-.controls select:hover {
+.controls input[type="text"]:hover:not(:focus),
+.controls input[type="number"]:hover:not(:focus),
+.controls select:hover:not(:focus) {
     border-color: rgba(255, 255, 255, 0.2);
 }
 
