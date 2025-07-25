@@ -117,13 +117,4 @@ export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> 
      * @param clicked - Whether mouse was clicked this frame.
      */
     public onMouseInteraction(_x: number, _y: number, _clicked: boolean): void {}
-
-    /**
-     * Get the recommended render padding for this pattern.
-     * Patterns that need to render outside visible area should override this.
-     * @returns Number of extra characters to render outside visible area.
-     */
-    public getRecommendedPadding(): number {
-        return 0;
-    }
 }

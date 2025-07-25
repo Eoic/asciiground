@@ -85,5 +85,16 @@ export const controls: RendererControlConfig = {
         step: 0.5,
         category: 'renderer',
         description: 'Vertical spacing between characters. Use 0 for auto-calculation.',
+    },
+    {
+        id: 'padding',
+        label: 'Render region padding',
+        type: 'number',
+        value: 0,
+        min: 0,
+        max: 100,
+        step: 1,
+        category: 'renderer',
+        description: 'Padding around the rendered area.',
     }],
 };

@@ -114,14 +114,6 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
     }
 
     /**
-     * Get recommended padding for smooth edge effects.
-     * Perlin noise benefits from a small padding for seamless patterns.
-     */
-    public getRecommendedPadding(): number {
-        return 1;
-    }
-
-    /**
      * Generate a proper permutation table for Perlin noise.
      */
     private _generatePermutations(seed: number): number[] {

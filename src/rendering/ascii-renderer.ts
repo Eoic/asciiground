@@ -19,11 +19,11 @@ export interface ASCIIRendererOptions {
     /** Background color */
     backgroundColor: string;
     /** Padding around the rendered area */
-    renderPadding?: number;
+    padding: number;
     /** Renderer type to use */
-    rendererType?: '2D' | 'WebGL';
+    rendererType: '2D' | 'WebGL';
     /** Enable mouse interaction support */
-    enableMouseInteraction?: boolean;
+    enableMouseInteraction: boolean;
     /** Horizontal spacing between characters. If not specified, auto-calculated based on character width */
     charSpacingX?: number;
     /** Vertical spacing between characters. If not specified, auto-calculated based on character height */
@@ -35,7 +35,7 @@ const DEFAULT_OPTIONS: ASCIIRendererOptions = {
     fontSize: 32,
     fontFamily: 'monospace',
     backgroundColor: '#181818ff',
-    renderPadding: 0,
+    padding: 0,
     rendererType: '2D',
     enableMouseInteraction: false,
     animated: false,
@@ -97,7 +97,6 @@ export class ASCIIRenderer {
         this._options = {
             ...DEFAULT_OPTIONS,
             ...options,
-            renderPadding: this._pattern.getRecommendedPadding() || DEFAULT_OPTIONS.renderPadding,
         };
 
         this._renderer = createRenderer(this._options.rendererType || '2D');
@@ -125,9 +124,8 @@ export class ASCIIRenderer {
             maxCharWidth = Math.max(maxCharWidth, metrics.width);
         }
 
-        const charWidth = maxCharWidth;
-
         // Calculate safe rendering height for auto-spacing
+        const charWidth = maxCharWidth;
         const heightMetrics = this._tempContext!.measureText('Áy@|');
         const measuredHeight = heightMetrics.actualBoundingBoxAscent + heightMetrics.actualBoundingBoxDescent;
         const charHeight = Math.max(measuredHeight, this._options.fontSize);
@@ -141,17 +139,16 @@ export class ASCIIRenderer {
             ? this._options.charSpacingY 
             : Math.max(charHeight, this._options.fontSize * 1.2);
         
-        const padding = this._options.renderPadding || 0;
-        const cols = Math.floor((this._canvas.width - padding * 2) / charSpacingX);
-        const rows = Math.floor((this._canvas.height - padding * 2) / charSpacingY);
+        const cols = Math.floor((this._canvas.width / charSpacingX));
+        const rows = Math.floor((this._canvas.height / charSpacingY));
 
         return {
-            startColumn: -padding,
-            endColumn: cols + padding,
-            startRow: -padding,
-            endRow: rows + padding,
+            startColumn: this._options.padding,
+            endColumn: cols - this._options.padding,
+            startRow: this._options.padding,
+            endRow: rows - this._options.padding,
             columns: cols,
-            rows,
+            rows: rows,
             charWidth,
             charHeight,
             charSpacingX,
