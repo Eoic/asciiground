@@ -1,9 +1,9 @@
-import { JapaneseRainPattern } from '../../../patterns/japanese-rain-pattern';
+import { RainPattern } from '../../../patterns/rain-pattern';
 import type { PatternControlConfig } from './controls-registry';
 
 export const controls: PatternControlConfig = {
-    label: 'Japanese rain',
-    pattern: JapaneseRainPattern,
+    label: 'Character rain',
+    pattern: RainPattern,
     controls: [
         {
             id: 'characters',
@@ -12,7 +12,7 @@ export const controls: PatternControlConfig = {
             outType: 'array',
             value: 'あかさたなはまやらわをんアカサタナハマヤラワヲン一二三四五六七八九十',
             category: 'pattern',
-            description: 'Japanese characters to use for the rain effect. Leave empty to use random generation.',
+            description: 'Characters to use for the trail effect. Leave empty to use random generation.',
         },
         {
             id: 'rainDensity',

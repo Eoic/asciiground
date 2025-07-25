@@ -56,7 +56,14 @@ export interface PatternContext {
  * Base class for all pattern generators.
  */
 export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> {
+    /**
+     * Unique identifier for the pattern, that should be overridden in subclasses.
+     */
     public static readonly ID: string;
+
+    /**
+     * Options for the pattern, initialized with default values.
+     */
     protected _options: TOptions;
 
     public get id(): string {

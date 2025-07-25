@@ -1,5 +1,5 @@
 // Test script for Japanese Rain Pattern debugging
-import { JapaneseRainPattern } from './src/patterns/japanese-rain-pattern.js';
+import { CharacterTrailPattern } from './src/patterns/rain-pattern.js';
 
 // Create a simple test region
 const testRegion = {
@@ -18,7 +18,7 @@ const testRegion = {
 };
 
 // Create pattern with default options
-const pattern = new JapaneseRainPattern({
+const pattern = new CharacterTrailPattern({
     rainDensity: 0.8,
     minDropLength: 3,
     maxDropLength: 8,
