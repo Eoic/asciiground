@@ -105,7 +105,7 @@ export class PatternProxy {
             let processedValue = value;
 
             if (key === 'characters' && typeof value === 'string')
-                processedValue = value.split('');
+                processedValue = Array.from(value);
 
             processedUpdates[key] = processedValue;
         });

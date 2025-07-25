@@ -1,4 +1,10 @@
-import { Pattern, type PatternOptions, type CharacterData, type PatternContext, type RenderRegion } from './pattern';
+import { 
+    Pattern, 
+    type PatternOptions, 
+    type CharacterData, 
+    type PatternContext, 
+    type RenderRegion 
+} from './pattern';
 
 /**
  * Options for configuring a Japanese rain pattern.
@@ -343,5 +349,14 @@ export class JapaneseRainPattern extends Pattern<JapaneseRainPatternOptions> {
         // Reinitialize if density changed significantly
         if (newOptions.rainDensity !== undefined && this._region) 
             this._maintainRainDensity();
+        
+        // Regenerate characters for existing drops if characters option changed
+        if (newOptions.characters !== undefined) {
+            for (const drop of this._rainDrops) {
+                drop.characters = Array.from({ length: drop.length }, () => 
+                    generateJapaneseCharacter(this._options.characters)
+                );
+            }
+        }
     }
 }
