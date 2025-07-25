@@ -1,5 +1,5 @@
 import { DummyPattern } from '../patterns/dummy-pattern';
-import { Pattern, type PatternContext, type RenderRegion } from '../patterns/pattern';
+import { Pattern, type PatternContext, type RenderRegion, type CharacterData } from '../patterns/pattern';
 import { type Renderer, createRenderer } from './renderer';
 
 /**
@@ -62,6 +62,8 @@ export class ASCIIRenderer {
     private _mouseClicked: boolean = false;
     private _tempCanvas: HTMLCanvasElement | null = null;
     private _tempContext: CanvasRenderingContext2D | null = null;
+    private _lastHash: number = 0;
+    private _isDirty: boolean = true;
 
     public get options(): ASCIIRendererOptions {
         return this._options;
@@ -219,6 +221,12 @@ export class ASCIIRenderer {
 
         this._mouseClicked = false;
         const characters = this._pattern.update(context).generate(context);
+
+        if (!this._hasOutputChanged(characters) && !this._isDirty)
+            return;
+
+        this._isDirty = false;
+        this._lastHash = this._hash(characters);
         this._renderer.clear(this._options.backgroundColor);
         this._renderer.render(characters, this._region);
     }
@@ -278,6 +286,7 @@ export class ASCIIRenderer {
     public updateOptions(newOptions: Partial<ASCIIRendererOptions>): void {
         const oldOptions = this._options;
         this._options = { ...oldOptions, ...newOptions };
+        this._isDirty = this._hasOptionsChanged(oldOptions);
         this._region = this._calculateRegion();
         this._pattern.initialize(this._region);
         this._renderer.options = this._options;
@@ -309,5 +318,49 @@ export class ASCIIRenderer {
         this._canvas.removeEventListener('click', this._mouseClickHandler);
         this._tempCanvas = null;
         this._tempContext = null;
+    }
+
+    /**
+     * Generate a hash for the current character data list.
+     * @param list - the character data list to hash.
+     * @returns A numeric hash value.
+     */
+    private _hash(list: CharacterData[]): number {
+        let hash = 0;
+
+        for (const { x, y, char, color = '', opacity = 1, scale = 1, rotation = 0 } of list) {
+            hash ^= (
+                ((x * 31 + y * 17) ^ char.charCodeAt(0)) +
+                (color.charCodeAt(0) || 0) * 13 +
+                Math.floor(opacity * 100) * 7 +
+                Math.floor(scale * 100) * 5 +
+                Math.floor(rotation * 100) * 3
+            );
+        }
+
+        return hash;
+    }
+
+    /**
+     * Check if the output has changed since the last render.
+     * This is used to avoid unnecessary rendering when nothing has changed.
+     * @param list - the current character data list.
+     * @returns True if the output has changed, false otherwise.
+     */
+    private _hasOutputChanged(list: CharacterData[]): boolean {
+        return this._hash(list) !== this._lastHash;
+    }
+
+    /**
+     * Check if the new options differ from the current ones.
+     * @param options - the options to compare against current options.
+     * @returns True if any option has changed, false otherwise.
+     */
+    private _hasOptionsChanged(options: Partial<ASCIIRendererOptions>): boolean {
+        return Object.keys(options).some((key) => {
+            const oldValue = this._options[key as keyof ASCIIRendererOptions];
+            const newValue = options[key as keyof ASCIIRendererOptions];
+            return oldValue !== newValue;
+        });
     }
 }
