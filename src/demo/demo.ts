@@ -25,7 +25,9 @@ import { ASCIIRenderer } from '../rendering/ascii-renderer';
     }
 
     function handleResize(renderer: ASCIIRenderer) {
-        window.addEventListener('resize', () => renderer.resize(window.innerWidth, window.innerHeight));
+        window.addEventListener('resize', () => {
+            renderer.resize(window.innerWidth, window.innerHeight);
+        });
     }
 
     function handleControls(controls: HTMLFormElement, renderer: ASCIIRenderer) {

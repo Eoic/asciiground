@@ -40,8 +40,8 @@ const DEFAULT_OPTIONS: ASCIIRendererOptions = {
     enableMouseInteraction: false,
     animated: false,
     animationSpeed: 1,
-    charSpacingX: undefined, // Auto-calculate if not specified
-    charSpacingY: undefined, // Auto-calculate if not specified
+    charSpacingX: undefined,
+    charSpacingY: undefined,
 };
 
 /**
@@ -303,8 +303,10 @@ export class ASCIIRenderer {
         this._renderer.resize(width, height);
         this._pattern.initialize(this._region);
 
-        if (!this.isAnimating) 
+        if (!this.isAnimating) {
+            this._isDirty = true;
             this.render();
+        }
     }
 
     /**
