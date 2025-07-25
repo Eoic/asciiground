@@ -170,8 +170,8 @@ export class JapaneseRainPattern extends Pattern<JapaneseRainPatternOptions> {
         const actualTargetCount = Math.max(1, targetDropCount);
 
         for (let i = 0; i < actualTargetCount; i++) {
-            // Distribute drops randomly across all columns
-            const column = Math.floor(Math.random() * this._region.columns);
+            // Distribute drops randomly across all columns within the region bounds
+            const column = Math.floor(Math.random() * this._region.columns) + this._region.startColumn;
             // Create drops with varied initial positions - some visible, some starting above
             const drop = this._createRainDrop(column, 0);
             
@@ -204,15 +204,16 @@ export class JapaneseRainPattern extends Pattern<JapaneseRainPatternOptions> {
     }
 
     private _updateRainDrops(context: PatternContext): void {
-        if (!this._region) return;
+        if (!this._region)
+            return;
 
         // Use deltaTime for smooth movement like other patterns
-        const speedMultiplier = this._options.animationSpeed;
-        
+        // const speedMultiplier = this.animationSpeed;
+
         for (const drop of this._rainDrops) {
             // Update position based on delta time (frame-independent movement)
             if (context.isAnimating)
-                drop.y += drop.speed * speedMultiplier * context.deltaTime;
+                drop.y += drop.speed * context.animationSpeed * context.deltaTime;
 
             // Randomly mutate characters based on time
             if (context.animationTime - drop.lastMutationTime > 1 / this._options.mutationRate) {
@@ -223,8 +224,8 @@ export class JapaneseRainPattern extends Pattern<JapaneseRainPatternOptions> {
                 }
             }
 
-            // Reset drop if it has fallen off screen
-            if (drop.y - drop.length > this._region.rows) 
+            // Reset drop if it has fallen off screen (using region bounds)
+            if (drop.y - drop.length > this._region.endRow) 
                 this._resetRainDrop(drop, context.animationTime);
         }
     }
@@ -243,8 +244,8 @@ export class JapaneseRainPattern extends Pattern<JapaneseRainPatternOptions> {
         );
         drop.speed = Math.random() * (this._options.maxSpeed - this._options.minSpeed) + this._options.minSpeed;
         
-        // Randomly assign a new column to ensure better distribution
-        drop.column = Math.floor(Math.random() * this._region.columns);
+        // Randomly assign a new column to ensure better distribution (within region bounds)
+        drop.column = Math.floor(Math.random() * this._region.columns) + this._region.startColumn;
     }
 
     private _maintainRainDensity(): void {
@@ -254,13 +255,13 @@ export class JapaneseRainPattern extends Pattern<JapaneseRainPatternOptions> {
 
         // Add drops if we're below target
         while (this._rainDrops.length < targetDropCount) {
-            const column = this._rainDrops.length % this._region.columns;
+            const column = (this._rainDrops.length % this._region.columns) + this._region.startColumn;
             const drop = this._createRainDrop(column, 0);
             
             // When adding new drops due to density increase, make some immediately visible
             // to provide instant visual feedback
             if (Math.random() < 0.4) { // 40% chance to be immediately visible
-                drop.y = Math.random() * this._region.rows;
+                drop.y = Math.random() * this._region.rows + this._region.startRow;
             }
             
             this._rainDrops.push(drop);
@@ -276,9 +277,11 @@ export class JapaneseRainPattern extends Pattern<JapaneseRainPatternOptions> {
      */
     private _adjustDropsToNewRegion(_oldRegion: RenderRegion, newRegion: RenderRegion): void {
         for (const drop of this._rainDrops) {
-            // Adjust column to fit new region width
-            if (drop.column >= newRegion.columns)
-                drop.column = drop.column % newRegion.columns;
+            // Adjust column to fit new region width and ensure it's within bounds
+            if (drop.column >= newRegion.startColumn + newRegion.columns)
+                drop.column = (drop.column % newRegion.columns) + newRegion.startColumn;
+            else if (drop.column < newRegion.startColumn)
+                drop.column = newRegion.startColumn;
             
             // No need to adjust Y position as it should continue naturally
             // Drops that are off-screen will be reset by the normal update cycle
@@ -291,8 +294,12 @@ export class JapaneseRainPattern extends Pattern<JapaneseRainPatternOptions> {
         for (let i = 0; i < drop.length; i++) {
             const charY = Math.floor(drop.y) - i;
             
-            // Skip characters outside visible area
-            if (charY < 0 || charY >= this._region.rows) 
+            // Skip characters outside visible region (including padding)
+            if (charY < this._region.startRow || charY > this._region.endRow) 
+                continue;
+
+            // Also check column bounds to ensure we don't render outside the region
+            if (drop.column < this._region.startColumn || drop.column > this._region.endColumn)
                 continue;
 
             const x = drop.column * this._region.charSpacingX;

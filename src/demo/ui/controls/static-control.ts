@@ -12,17 +12,6 @@ export const controls: PatternControlConfig = {
             value: '.*#',
             category: 'pattern',
             description: 'Characters used for rendering.',
-        },
-        {
-            id: 'animationSpeed',
-            label: 'Animation speed',
-            type: 'range',
-            value: 0.1,
-            min: 0.1,
-            max: 1.0,
-            step: 0.1,
-            category: 'pattern',
-            description: 'Speed of the static animation.',
         }
     ],
 };

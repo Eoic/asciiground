@@ -63,15 +63,7 @@ export class ControlsGenerator {
         if (!element)
             return null;
 
-        switch (element.type) {
-            case 'checkbox':
-                return element.checked;
-            case 'number':
-            case 'range':
-                return parseFloat(element.value);
-            default:
-                return element.value;
-        }
+        return this._parseControlValue(element);
     }
 
     /**
@@ -217,6 +209,22 @@ export class ControlsGenerator {
             label.appendChild(inputContainer);
         } else label.appendChild(input);
 
+        let isVisible = true;
+
+        for (const condition of spec.visibleOn || []) {
+            const key = Object.keys(condition)[0];
+            const value = condition[key];
+            const controlSpec = ControlsRegistry.getControlSpec(key);
+
+            if (!controlSpec) {
+                console.warn(`Control spec for "${key}" not found.`);
+                continue;
+            }
+
+            isVisible &&= (controlSpec.value === value);
+        }
+
+        label.classList.toggle('hidden', !isVisible);
         return label;
     }
 
@@ -323,11 +331,62 @@ export class ControlsGenerator {
         return [container, input];
     }
 
+    // private _updateVisibilities() {
+    //     const inputs = this._container.querySelectorAll('input[data-control-id], select[data-control-id]');
+    //     const controls = ControlsRegistry.getAllControlsSpecs();
+
+    //     inputs.forEach((input) => {
+    //         const controlId = input.getAttribute('data-control-id');
+
+    //         if (!controlId) {
+    //             console.error('Control ID not found for input:', input);
+    //             return;
+    //         }
+        
+    //         const value = this.getControlValue(controlId);
+
+    //         if (value === null) {
+    //             console.error(`Control value for "${controlId}" is null.`);
+    //             return;
+    //         }
+
+
+    //     });
+
+
+    // for (const control of controls) {
+    //     if (!control.visibleOn)
+    //         continue;
+
+    //     const conditions = control.visibleOn.filter((condition) => condition[controlId] !== undefined) ?? [];
+
+    //     if (conditions.length === 0)
+    //         continue;
+
+    //     const isVisible = conditions.some((condition) => condition[controlId] === value);
+
+    //     this._container
+    //         .querySelector(`label[data-control-id="${control.id}"]`)
+    //         ?.classList.toggle('hidden', !isVisible);
+    // }
+    // }
+
+    private _parseControlValue(target: HTMLInputElement | HTMLSelectElement): ControlValue {
+        switch (target.type) {
+            case 'checkbox':
+                return target.checked;
+            case 'number':
+            case 'range':
+                return parseFloat(target.value);
+            default:
+                return target.value;
+        }
+    }
+
     /**
      * Handle control value changes.
      */
     private _handleControlInput = (event: Event): void => {
-        let value: ControlValue;
         const target = event.target as HTMLInputElement;
         const controlId = target.getAttribute('data-control-id');
 
@@ -336,17 +395,27 @@ export class ControlsGenerator {
             return;
         }
 
-        switch (target.type) {
-            case 'checkbox':
-                value = target.checked;
-                break;
-            case 'number':
-            case 'range':
-                value = parseFloat(target.value);
-                break;
-            default:
-                value = target.value;
+        const value = this._parseControlValue(target);
+
+        // Dynamic controls.
+        const controls = ControlsRegistry.getAllControlsSpecs();
+
+        for (const control of controls) {
+            if (!control.visibleOn)
+                continue;
+
+            const conditions = control.visibleOn.filter((condition) => condition[controlId] !== undefined) ?? [];
+
+            if (conditions.length === 0)
+                continue;
+
+            const isVisible = conditions.some((condition) => condition[controlId] === value);
+
+            this._container
+                .querySelector(`label[data-control-id="${control.id}"]`)
+                ?.classList.toggle('hidden', !isVisible);
         }
+        // ---
 
         this._emitChange(controlId, value);
     };

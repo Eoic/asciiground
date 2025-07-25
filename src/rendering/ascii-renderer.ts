@@ -2,15 +2,32 @@ import { DummyPattern } from '../patterns/dummy-pattern';
 import { Pattern, type PatternContext, type RenderRegion } from '../patterns/pattern';
 import { type Renderer, createRenderer } from './renderer';
 
+/**
+ * Configuration options for the ASCII renderer.
+ */
 export interface ASCIIRendererOptions {
+    /** Text color for rendered characters */
     color: string;
+    /** Whether animation is enabled */
     animated: boolean;
+    /** Animation speed multiplier */
+    animationSpeed: number;
+    /** Font size in pixels */
     fontSize: number;
+    /** Font family to use for rendering */
     fontFamily: string;
+    /** Background color */
     backgroundColor: string;
+    /** Padding around the rendered area */
     renderPadding?: number;
+    /** Renderer type to use */
     rendererType?: '2D' | 'WebGL';
+    /** Enable mouse interaction support */
     enableMouseInteraction?: boolean;
+    /** Horizontal spacing between characters. If not specified, auto-calculated based on character width */
+    charSpacingX?: number;
+    /** Vertical spacing between characters. If not specified, auto-calculated based on character height */
+    charSpacingY?: number;
 }
 
 const DEFAULT_OPTIONS: ASCIIRendererOptions = {
@@ -22,6 +39,9 @@ const DEFAULT_OPTIONS: ASCIIRendererOptions = {
     rendererType: '2D',
     enableMouseInteraction: false,
     animated: false,
+    animationSpeed: 1,
+    charSpacingX: undefined, // Auto-calculate if not specified
+    charSpacingY: undefined, // Auto-calculate if not specified
 };
 
 /**
@@ -94,53 +114,30 @@ export class ASCIIRenderer {
 
         this._tempContext!.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
 
-        // For character width, we need to account for the widest characters that might appear.
-        // Use a representative set of wide ASCII characters to prevent overlap.
+        // Calculate character dimensions for auto-spacing
         const widthTestChars = ['M', 'W', '@', '#', '0', '8'];
-        
-        // Also test common Japanese characters if pattern uses them
-        const patternChars = Array.isArray(this._pattern.options.characters) 
-            ? this._pattern.options.characters.join('') 
-            : (this._pattern.options.characters || '');
-        const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(patternChars);
-        if (hasJapanese) {
-            // Add wide Japanese characters for testing
-            widthTestChars.push('あ', 'ア', '漢', '龍', 'Ｍ', 'Ｗ');
-        }
-        
         let maxCharWidth = 0;
 
         for (const char of widthTestChars) {
             const metrics = this._tempContext!.measureText(char);
             maxCharWidth = Math.max(maxCharWidth, metrics.width);
         }
-        
+
         const charWidth = maxCharWidth;
-        
-        // Calculate safe rendering height to prevent character overlap.
-        // Use a representative string that includes characters with ascenders and descenders
-        // to ensure we capture the full vertical range needed for any ASCII character.
+
+        // Calculate safe rendering height for auto-spacing
         const heightMetrics = this._tempContext!.measureText('Áy@|');
         const measuredHeight = heightMetrics.actualBoundingBoxAscent + heightMetrics.actualBoundingBoxDescent;
-        
-        // Ensure minimum line height based on font size to prevent overlap.
-        // Use 1.2x font size as minimum, which is a standard line height multiplier
-        // that provides adequate spacing between text lines.
-        const minLineHeight = this._options.fontSize * 1.2;
-        const charHeight = Math.max(measuredHeight, minLineHeight);
-        
-        // Calculate tighter spacing for grid positioning to fill the screen better.
-        // Use a slightly reduced vertical spacing while ensuring no overlap.
-        const charSpacingY = Math.max(measuredHeight * 0.9, this._options.fontSize * 0.9);
-        
-        // For horizontal spacing, use the measured max width for non-monospace fonts
-        // and apply consistent spacing for monospace fonts.
-        const isMonospace = this._options.fontFamily === 'monospace';
-        let charSpacingX = isMonospace ? Math.max(charWidth, charSpacingY * 0.6) : charWidth;
-        
-        // Add extra spacing for Japanese characters to prevent overlap
-        if (hasJapanese)
-            charSpacingX *= 1.1; // 10% extra spacing for Japanese characters
+        const charHeight = Math.max(measuredHeight, this._options.fontSize);
+
+        // Use user-specified spacing or calculate automatically
+        const charSpacingX = (this._options.charSpacingX && this._options.charSpacingX > 0) 
+            ? this._options.charSpacingX 
+            : charWidth;
+
+        const charSpacingY = (this._options.charSpacingY && this._options.charSpacingY > 0) 
+            ? this._options.charSpacingY 
+            : Math.max(charHeight, this._options.fontSize * 1.2);
         
         const padding = this._options.renderPadding || 0;
         const cols = Math.floor((this._canvas.width - padding * 2) / charSpacingX);
@@ -206,7 +203,7 @@ export class ASCIIRenderer {
         this._lastTime = time;
 
         if (this._options.animated)
-            this._animationTime += (deltaTime / 1000) * this._pattern.options.animationSpeed;
+            this._animationTime += (deltaTime / 1000) * this._options.animationSpeed;
 
         const context: PatternContext = {
             time: this._animationTime,
@@ -217,6 +214,7 @@ export class ASCIIRenderer {
             mouseY: this._mouseY,
             clicked: this._mouseClicked,
             isAnimating: this._options.animated,
+            animationSpeed: this._options.animationSpeed,
         };
 
         this._mouseClicked = false;

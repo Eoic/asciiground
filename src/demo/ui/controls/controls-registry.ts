@@ -27,6 +27,7 @@ export interface ControlSpec {
     category: 'renderer' | 'pattern';
     options?: Array<{ value: string | number | boolean; label: string }>;
     type: 'number' | 'text' | 'color' | 'select' | 'range' | 'checkbox' | 'textarea';
+    visibleOn?: Array<{ [key: string]: string | number | boolean }>;
 }
 
 export interface PatternControlConfig {
@@ -68,6 +69,33 @@ export class ControlsRegistry {
             throw new Error(`Pattern controls for "${patternType}" not found.`);
 
         return this._PATTERN_CONTROLS[patternType];
+    }
+
+    /**
+     * Get control specification by ID.
+     */
+    public static getControlSpec(id: string): ControlSpec | null {
+        const rendererControl = this._RENDERER_CONTROLS.controls.find((control) => control.id === id);
+
+        if (rendererControl)
+            return rendererControl;
+
+        for (const patternConfig of Object.values(this._PATTERN_CONTROLS))
+            return patternConfig.controls.find((control) => control.id === id) ?? null;
+
+        return null;
+    }
+
+    /**
+     * Get all control specifications across all patterns and renderer.
+     */
+    public static getAllControlsSpecs(): ControlSpec[] {
+        const specs: ControlSpec[] = [...this._RENDERER_CONTROLS.controls];
+
+        for (const patternConfig of Object.values(this._PATTERN_CONTROLS)) 
+            specs.push(...patternConfig.controls);
+
+        return specs;
     }
 
     /**

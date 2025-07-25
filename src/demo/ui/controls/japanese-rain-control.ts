@@ -14,17 +14,6 @@ export const controls: PatternControlConfig = {
             description: 'Japanese characters to use for the rain effect. Leave empty to use random generation.',
         },
         {
-            id: 'animationSpeed',
-            label: 'Animation speed',
-            type: 'range',
-            value: 50,
-            min: 0.1,
-            max: 200,
-            step: 0.1,
-            category: 'pattern',
-            description: 'Speed of the falling rain animation.',
-        },
-        {
             id: 'rainDensity',
             label: 'Rain density',
             type: 'range',

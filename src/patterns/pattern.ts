@@ -1,11 +1,9 @@
 export interface PatternOptions {
     characters: string[];
-    animationSpeed: number;
 }
 
 export const DEFAULT_PATTERN_OPTIONS: PatternOptions = {
     characters: ['█', '▓', '▒', '░', ' '],
-    animationSpeed: 1,
 };
 
 /**
@@ -49,7 +47,8 @@ export interface PatternContext {
     mouseX?: number;
     mouseY?: number;
     clicked?: boolean;
-    isAnimating?: boolean;
+    isAnimating: boolean;
+    animationSpeed: number;
     region: RenderRegion;
 }
 
