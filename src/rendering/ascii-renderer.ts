@@ -223,10 +223,13 @@ export class ASCIIRenderer {
         this._mouseClicked = false;
         const characters = this._pattern.update(context).generate(context);
 
-        if (!this._hasOutputChanged(characters) && !this._isDirty)
+        if (!this._hasOutputChanged(characters) && !this._isDirty && !this._pattern.isDirty) {
+            console.debug('No changes detected, skipping render.');
             return;
+        }
 
         this._isDirty = false;
+        this._pattern.isDirty = false;
         this._lastHash = this._hash(characters);
         this._renderer.clear(this._options.backgroundColor);
         this._renderer.render(characters, this._region);

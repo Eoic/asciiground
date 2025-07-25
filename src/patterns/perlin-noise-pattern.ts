@@ -1,4 +1,5 @@
 import { Pattern, type PatternOptions, type CharacterData, type PatternContext } from './pattern';
+import { createSeededRandom } from '../utils/seeded-random';
 
 /**
  * Options for configuring a Perlin noise pattern.
@@ -117,16 +118,11 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
      * Generate a proper permutation table for Perlin noise.
      */
     private _generatePermutations(seed: number): number[] {
-        let randomizer = seed;
+        const randomizer = createSeededRandom(seed);
         const table: number[] = Array.from({ length: 256 }, (_, i) => i);
 
-        const random = () => {
-            randomizer = (randomizer * 16807) % 2147483647;
-            return randomizer / 2147483647;
-        };
-
         for (let i = 255; i > 0; i--) {
-            const j = Math.floor(random() * (i + 1));
+            const j = Math.floor(randomizer() * (i + 1));
             const temp = table[i];
             table[i] = table[j];
             table[j] = temp;

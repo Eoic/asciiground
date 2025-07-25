@@ -25,6 +25,7 @@ interface RainPatternOptions extends PatternOptions {
     maxSpeed: number;
     mutationRate: number;
     fadeOpacity: number;
+    headColor: string;
 }
 
 const DEFAULT_RAIN_OPTIONS: Required<
@@ -38,6 +39,7 @@ const DEFAULT_RAIN_OPTIONS: Required<
     maxSpeed: 1.5,
     mutationRate: 0.04,
     fadeOpacity: 0.2,
+    headColor: '#FFFFFF',
 };
 
 /**
@@ -252,9 +254,10 @@ export class RainPattern extends Pattern<RainPatternOptions> {
             let color: string | undefined = undefined;
             let opacity = 1.0;
 
-            // Control head color via settings.
-            if (i === 0) 
-                color = '#ffffff';
+            // TODO: Account for padding.
+            // TODO: Fix density accumulation (currently, it goes from left to right, but should be random).
+            if (i === 0)
+                color = this._options.headColor;
             else if (i >= 3) 
                 opacity = 1 - (i / drop.length);
 

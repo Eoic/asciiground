@@ -66,12 +66,26 @@ export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> 
      */
     protected _options: TOptions;
 
+    /**
+     * Flag indicating if the pattern needs to be re-rendered.
+     * This is set to true when pattern options change in a way that required re-render (e.g. color change).
+     */
+    protected _isDirty: boolean = false;
+
     public get id(): string {
         return (this.constructor as typeof Pattern).ID;
     }
 
     public get options(): TOptions {
         return this._options;
+    }
+
+    public get isDirty(): boolean {
+        return this._isDirty;
+    }
+
+    public set isDirty(value: boolean) {
+        this._isDirty = value;
     }
 
     constructor(options: Partial<TOptions> = {}) {
@@ -84,6 +98,7 @@ export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> 
      * @param newOptions - partial options to update
      */
     public updateOptions(newOptions: Partial<TOptions>): void {
+        this._isDirty = this._hasOptionsChanged(newOptions);
         this._options = { ...this._options, ...newOptions };
     }
 
@@ -124,4 +139,17 @@ export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> 
      * @param clicked - Whether mouse was clicked this frame.
      */
     public onMouseInteraction(_x: number, _y: number, _clicked: boolean): void {}
+
+    /**
+     * Check if the pattern options have changed.
+     * @param options - new options to compare against current options.
+     * @returns True if any options have changed, false otherwise.
+     */
+    private _hasOptionsChanged(options: Partial<PatternOptions>): boolean {
+        return Object.keys(options).some((key) => {
+            const oldValue = this._options[key as keyof PatternOptions];
+            const newValue = options[key as keyof PatternOptions];
+            return oldValue !== newValue;
+        });
+    }
 }

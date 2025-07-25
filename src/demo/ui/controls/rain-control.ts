@@ -15,6 +15,15 @@ export const controls: PatternControlConfig = {
             description: 'Characters to use for the trail effect. Leave empty to use random generation.',
         },
         {
+            id: 'headColor',
+            label: 'Head color',
+            type: 'color',
+            outType: 'string',
+            value: '#FFFFFF',
+            category: 'pattern',
+            description: 'Color of the head character in the rain stream.',
+        },
+        {
             id: 'rainDensity',
             label: 'Rain density',
             type: 'range',
