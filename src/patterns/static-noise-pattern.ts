@@ -4,9 +4,10 @@ import { Pattern, type PatternOptions, type CharacterData, type PatternContext }
 /**
  * Options for configuring a static pattern.
  * @extends PatternOptions
+ * @category Patterns
  * @property seed - the seed value for random number generation used to ensure reproducible noise patterns.
  */
-interface StaticNoisePatternOptions extends PatternOptions {
+export interface StaticNoisePatternOptions extends PatternOptions {
     seed: number;
 }
 
@@ -19,6 +20,7 @@ const DEFAULT_STATIC_NOISE_OPTIONS: Required<
 
 /**
  * Static noise pattern class.
+ * @category Patterns
  */
 export class StaticNoisePattern extends Pattern<StaticNoisePatternOptions> {
     public static readonly ID = 'static';

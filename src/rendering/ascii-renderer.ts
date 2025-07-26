@@ -4,6 +4,7 @@ import { type Renderer, createRenderer } from './renderer';
 
 /**
  * Configuration options for the ASCII renderer.
+ * @category Rendering
  */
 export interface ASCIIRendererOptions {
     /** Text color for rendered characters */
@@ -69,6 +70,7 @@ const initState = () => ({
 /**
  * Main ASCII renderer that coordinates pattern generation with rendering back-ends.
  * Supports both 2D canvas and WebGL rendering with automatic fallback.
+ * @category Rendering
  */
 export class ASCIIRenderer {
     private _state = initState();

@@ -9,6 +9,7 @@ import {
 /**
  * Options for configuring a rain pattern.
  * @extends PatternOptions
+ * @category Patterns
  * @property rainDensity - density of rain drops (0-1). Higher values create more rain streams.
  * @property minDropLength - minimum length of rain drops in characters.
  * @property maxDropLength - maximum length of rain drops in characters.
@@ -17,7 +18,7 @@ import {
  * @property mutationRate - probability of character mutation per frame (0-1).
  * @property fadeOpacity - background fade opacity for trail effect (0-1).
  */
-interface RainPatternOptions extends PatternOptions {
+export interface RainPatternOptions extends PatternOptions {
     rainDensity: number;
     minDropLength: number;
     maxDropLength: number;
@@ -44,6 +45,8 @@ const DEFAULT_RAIN_OPTIONS: Required<
 
 /**
  * Represents a single rain drop falling down the screen.
+ * @category RainPattern
+ * @internal
  */
 interface RainDrop {
     y: number;
@@ -57,6 +60,7 @@ interface RainDrop {
 /**
  * Matrix-style rain pattern that creates falling streams of characters.
  * Features configurable rain density, drop lengths, speeds, and character mutation.
+ * @category Patterns
  */
 export class RainPattern extends Pattern<RainPatternOptions> {
     public static readonly ID = 'rain';

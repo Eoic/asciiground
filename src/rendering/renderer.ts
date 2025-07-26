@@ -3,6 +3,7 @@ import type { CharacterData, RenderRegion } from '../patterns/pattern';
 
 /**
  * Common interface for all renderers.
+ * @category Rendering
  */
 export interface Renderer {
     /**
@@ -43,6 +44,7 @@ export interface Renderer {
 
 /**
  * 2D Canvas renderer for ASCII characters.
+ * @category Rendering
  */
 export class Canvas2DRenderer implements Renderer {
     private _canvas!: HTMLCanvasElement;
@@ -151,6 +153,7 @@ export class Canvas2DRenderer implements Renderer {
 
 /**
  * WebGL renderer for ASCII characters with enhanced performance.
+ * @category Rendering
  */
 export class WebGLRenderer implements Renderer {
     private _gl!: WebGL2RenderingContext;

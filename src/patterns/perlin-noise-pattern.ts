@@ -4,13 +4,14 @@ import { createSeededRandom } from '../utils/seeded-random';
 /**
  * Options for configuring a Perlin noise pattern.
  * @extends PatternOptions
+ * @category Patterns
  * @property frequency - the base frequency of the Perlin noise. Higher values result in more rapid changes.
  * @property octaves - the number of noise layers to combine for fractal noise. More octaves add detail.
  * @property persistence - controls the amplitude of each octave. Lower values reduce the influence of higher octaves.
  * @property lacunarity - controls the frequency of each octave. Higher values increase the frequency 
  * @property seed - the seed value for random number generation used to ensure reproducible noise patterns.
  */
-interface PerlinNoisePatternOptions extends PatternOptions {
+export interface PerlinNoisePatternOptions extends PatternOptions {
     frequency: number;
     octaves: number;
     persistence: number;
@@ -32,6 +33,7 @@ const DEFAULT_PERLIN_OPTIONS: Required<
 /**
  * Perlin noise implementation that provides smooth, organic-looking noise patterns.
  * Supports multiple octaves for fractal noise generation.
+ * @category Patterns
  */
 export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
     public static readonly ID = 'perlin-noise';
