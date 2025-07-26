@@ -15,12 +15,7 @@ import { ASCIIRenderer } from '../rendering/ascii-renderer';
 
         document.body.appendChild(canvas);
         handleControls(controls, renderer);
-        render(renderer);
         removeLoader(loader);
-    }
-
-    function render(renderer: ASCIIRenderer) {
-        renderer.render();
     }
 
     function handleControls(controls: HTMLFormElement, renderer: ASCIIRenderer) {
