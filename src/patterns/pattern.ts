@@ -97,7 +97,7 @@ export abstract class Pattern<TOptions extends PatternOptions = PatternOptions> 
      * Override this method if your pattern has expensive initialization that should be preserved.
      * @param newOptions - partial options to update
      */
-    public updateOptions(newOptions: Partial<TOptions>): void {
+    public setOptions(newOptions: Partial<TOptions>): void {
         this._isDirty = this._hasOptionsChanged(newOptions);
         this._options = { ...this._options, ...newOptions };
     }

@@ -18,7 +18,7 @@ export class PatternProxy {
 
     constructor(renderer: ASCIIRenderer) {
         this._renderer = renderer;
-        this._renderer.updateOptions(ControlsRegistry.getRendererOptions());
+        this._renderer.setOptions(ControlsRegistry.getRendererOptions());
     }
 
     /**
@@ -39,7 +39,7 @@ export class PatternProxy {
 
         const [PatternConstructor, defaultOptions] = this._getPattern(patternId);
         this._renderer.pattern = new PatternConstructor(defaultOptions);
-        this._renderer.updateOptions(ControlsRegistry.getRendererOptions());
+        this._renderer.setOptions(ControlsRegistry.getRendererOptions());
         this._renderer.render();
     }
 
@@ -110,8 +110,8 @@ export class PatternProxy {
             processedUpdates[key] = processedValue;
         });
 
-        if (typeof this._renderer.pattern.updateOptions === 'function') 
-            this._renderer.pattern.updateOptions(processedUpdates);
+        if (typeof this._renderer.pattern.setOptions === 'function') 
+            this._renderer.pattern.setOptions(processedUpdates);
         else {
             const currentOptions = { ...this._renderer.pattern.options, ...processedUpdates };
             const patternId = this._renderer.pattern.id;
@@ -131,7 +131,7 @@ export class PatternProxy {
      */
     private _updateRenderer(): void {
         const pendingUpdates = this._pendingRendererUpdates as Partial<ASCIIRendererOptions>;
-        this._renderer.updateOptions(pendingUpdates);
+        this._renderer.setOptions(pendingUpdates);
     }
 
     /**

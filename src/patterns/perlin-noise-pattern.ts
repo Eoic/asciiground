@@ -67,9 +67,9 @@ export class PerlinNoisePattern extends Pattern<PerlinNoisePatternOptions> {
     /**
      * Update options while preserving expensive permutation table when possible.
      */
-    public updateOptions(newOptions: Partial<PerlinNoisePatternOptions>): void {
+    public setOptions(newOptions: Partial<PerlinNoisePatternOptions>): void {
         const oldSeed = this._options.seed;
-        super.updateOptions(newOptions);
+        super.setOptions(newOptions);
 
         if (newOptions.seed !== undefined && newOptions.seed !== oldSeed)
             this._permutations = this._generatePermutations(this._options.seed);

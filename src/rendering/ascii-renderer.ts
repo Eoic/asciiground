@@ -45,7 +45,7 @@ const DEFAULT_OPTIONS: ASCIIRendererOptions = {
 };
 
 /**
- * Main ASCII renderer that coordinates pattern generation with rendering.
+ * Main ASCII renderer that coordinates pattern generation with rendering back-ends.
  * Supports both 2D canvas and WebGL rendering with automatic fallback.
  */
 export class ASCIIRenderer {
@@ -73,13 +73,15 @@ export class ASCIIRenderer {
         return this._pattern;
     }
 
+    /** Set a new pattern generator for the renderer. */
     public set pattern(pattern: Pattern) {
         this._pattern.destroy();
         this._pattern = pattern;
         this._pattern.initialize(this._region);
-        this.resetAnimationTime();
+        this._resetAnimationTime();
     }
 
+    /** Whether the renderer is currently animating. */
     public get isAnimating(): boolean {
         return this._options.animated;
     }
@@ -269,7 +271,7 @@ export class ASCIIRenderer {
      * Reset the animation time to zero.
      * Useful when restarting animations or switching patterns.
      */
-    public resetAnimationTime(): void {
+    private _resetAnimationTime(): void {
         this._animationTime = 0;
     }
 
@@ -277,7 +279,7 @@ export class ASCIIRenderer {
      * Synchronize animation state with the current options.
      * This ensures that the renderer reflects the current animation settings.
      */
-    public syncAnimationState(): void {
+    private _syncAnimationState(): void {
         if (this._options.animated && this._animationId === null)
             this.startAnimation();
         else if (!this._options.animated && this._animationId !== null) 
@@ -287,14 +289,14 @@ export class ASCIIRenderer {
     /**
      * Update rendering options.
      */
-    public updateOptions(newOptions: Partial<ASCIIRendererOptions>): void {
+    public setOptions(newOptions: Partial<ASCIIRendererOptions>): void {
         const oldOptions = this._options;
         this._options = { ...oldOptions, ...newOptions };
         this._isDirty = this._hasOptionsChanged(oldOptions);
         this._region = this._calculateRegion();
         this._pattern.initialize(this._region);
         this._renderer.options = this._options;
-        this.syncAnimationState();
+        this._syncAnimationState();
     }
 
     /**

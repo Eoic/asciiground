@@ -277,8 +277,8 @@ export class RainPattern extends Pattern<RainPatternOptions> {
         this._region = null;
     }
 
-    public updateOptions(newOptions: Partial<RainPatternOptions>): void {
-        super.updateOptions(newOptions);
+    public setOptions(newOptions: Partial<RainPatternOptions>): void {
+        super.setOptions(newOptions);
 
         if (newOptions.rainDensity !== undefined && this._region) 
             this._maintainRainDensity();
