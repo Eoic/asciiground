@@ -47,46 +47,52 @@ const DEFAULT_OPTIONS: ASCIIRendererOptions = {
     resizeTo: window,
 };
 
+const initState = () => ({
+    canvas: null as HTMLCanvasElement | null,
+    renderer: null as Renderer | null,
+    pattern: null as Pattern | null,
+    region: null as RenderRegion | null,
+    options: DEFAULT_OPTIONS,
+    lastTime: 0,
+    animationId: null as number | null,
+    animationTime: 0,
+    mouseX: 0,
+    mouseY: 0,
+    mouseClicked: false,
+    tempCanvas: null as HTMLCanvasElement | null,
+    tempContext: null as CanvasRenderingContext2D | null,
+    lastHash: 0,
+    isDirty: true,
+    resizeObserver: null as ResizeObserver | null,
+});
+
 /**
  * Main ASCII renderer that coordinates pattern generation with rendering back-ends.
  * Supports both 2D canvas and WebGL rendering with automatic fallback.
  */
 export class ASCIIRenderer {
-    private _canvas: HTMLCanvasElement;
-    private _renderer: Renderer;
-    private _pattern: Pattern;
-    private _region: RenderRegion;
-    private _options: ASCIIRendererOptions;
-    private _lastTime: number = 0;
-    private _animationId: number | null = null;
-    private _animationTime: number = 0;
-    private _mouseX: number = 0;
-    private _mouseY: number = 0;
-    private _mouseClicked: boolean = false;
-    private _tempCanvas: HTMLCanvasElement | null = null;
-    private _tempContext: CanvasRenderingContext2D | null = null;
-    private _lastHash: number = 0;
-    private _isDirty: boolean = true;
+    private _state = initState();
+    private _handleResize: VoidFunction;
 
     public get options(): ASCIIRendererOptions {
-        return this._options;
+        return this._state.options;
     }
 
     public get pattern(): Pattern {
-        return this._pattern;
+        return this._state.pattern!;
     }
 
     /** Set a new pattern generator for the renderer. */
     public set pattern(pattern: Pattern) {
-        this._pattern.destroy();
-        this._pattern = pattern;
-        this._pattern.initialize(this._region);
+        this.pattern.destroy();
+        this._state.pattern = pattern;
+        this._state.pattern.initialize(this._state.region!);
         this._resetAnimationTime();
     }
 
     /** Whether the renderer is currently animating. */
     public get isAnimating(): boolean {
-        return this._options.animated;
+        return this._state.options.animated;
     }
 
     /**
@@ -96,19 +102,20 @@ export class ASCIIRenderer {
      * @param options - rendering options.
      */
     constructor(canvas: HTMLCanvasElement, pattern?: Pattern, options: Partial<ASCIIRendererOptions> = {}) {
-        this._canvas = canvas;
-        this._pattern = pattern || new DummyPattern();
+        this._state.canvas = canvas;
+        this._state.pattern = pattern || new DummyPattern();
+        this._handleResize = this.resize.bind(this);
 
-        this._options = {
+        this._state.options = {
             ...DEFAULT_OPTIONS,
             ...options,
         };
 
-        this._renderer = createRenderer(this._options.rendererType || '2D');
-        this._region = this._calculateRegion();
+        this._state.renderer = createRenderer(this._state.options.rendererType || '2D');
+        this._state.region = this._calculateRegion();
         this._setupRenderer();
 
-        if (this._options.enableMouseInteraction) 
+        if (this._state.options.enableMouseInteraction) 
             this._setupMouseEvents();
     }
 
@@ -119,51 +126,51 @@ export class ASCIIRenderer {
     private _calculateSpacing(): [number, number, number, number] {
         let maxCharWidth = 0;
 
-        for (const char of this._pattern.options.characters) {
-            const metrics = this._tempContext!.measureText(char);
+        for (const char of this._state.pattern!.options.characters) {
+            const metrics = this._state.tempContext!.measureText(char);
             maxCharWidth = Math.max(maxCharWidth, metrics.width);
         }
 
         const charWidth = maxCharWidth;
-        const heightMetrics = this._tempContext!.measureText(this.pattern.options.characters.join(''));
+        const heightMetrics = this._state.tempContext!.measureText(this._state.pattern!.options.characters.join(''));
         const measuredHeight = heightMetrics.actualBoundingBoxAscent + heightMetrics.actualBoundingBoxDescent;
-        const charHeight = Math.max(measuredHeight, this._options.fontSize);
+        const charHeight = Math.max(measuredHeight, this._state.options.fontSize);
 
-        const charSpacingX = (this._options.charSpacingX && this._options.charSpacingX > 0) 
-            ? this._options.charSpacingX 
+        const charSpacingX = (this._state.options.charSpacingX && this._state.options.charSpacingX > 0) 
+            ? this._state.options.charSpacingX 
             : charWidth;
 
-        const charSpacingY = (this._options.charSpacingY && this._options.charSpacingY > 0) 
-            ? this._options.charSpacingY 
-            : Math.max(charHeight, this._options.fontSize * 1.2);
+        const charSpacingY = (this._state.options.charSpacingY && this._state.options.charSpacingY > 0) 
+            ? this._state.options.charSpacingY 
+            : Math.max(charHeight, this._state.options.fontSize * 1.2);
 
         return [charWidth, charHeight, charSpacingX, charSpacingY];
     }
 
     private _calculateRegion(): RenderRegion {
-        if (!this._tempCanvas) {
-            this._tempCanvas = document.createElement('canvas');
-            this._tempContext = this._tempCanvas.getContext('2d')!;
+        if (!this._state.tempCanvas) {
+            this._state.tempCanvas = document.createElement('canvas');
+            this._state.tempContext = this._state.tempCanvas.getContext('2d')!;
         }
 
-        this._tempContext!.font = `${this._options.fontSize}px ${this._options.fontFamily}`;
+        this._state.tempContext!.font = `${this._state.options.fontSize}px ${this._state.options.fontFamily}`;
         const [charWidth, charHeight, charSpacingX, charSpacingY] = this._calculateSpacing();
-        const cols = Math.floor((this._canvas.width / charSpacingX));
-        const rows = Math.floor((this._canvas.height / charSpacingY));
+        const cols = Math.floor((this._state.canvas!.width / charSpacingX));
+        const rows = Math.floor((this._state.canvas!.height / charSpacingY));
 
         return {
-            startColumn: this._options.padding,
-            endColumn: cols - this._options.padding,
-            startRow: this._options.padding,
-            endRow: rows - this._options.padding,
+            startColumn: this._state.options.padding,
+            endColumn: cols - this._state.options.padding,
+            startRow: this._state.options.padding,
+            endRow: rows - this._state.options.padding,
             columns: cols,
             rows: rows,
             charWidth,
             charHeight,
             charSpacingX,
             charSpacingY,
-            canvasWidth: this._canvas.width,
-            canvasHeight: this._canvas.height,
+            canvasWidth: this._state.canvas!.width,
+            canvasHeight: this._state.canvas!.height,
         };
     }
 
@@ -172,9 +179,13 @@ export class ASCIIRenderer {
      * This sets up the rendering context and prepares for rendering.
      */
     private _setupRenderer(): void {
-        this._renderer.initialize(this._canvas, this._options);
-        this._pattern.initialize(this._region);
-        this._options.resizeTo.addEventListener('resize', () => this.resize());
+        this._state.renderer!.initialize(this._state.canvas!, this._state.options);
+        this._state.pattern!.initialize(this._state.region!);
+
+        if (this._state.options.resizeTo instanceof HTMLElement) {
+            this._state.resizeObserver = new ResizeObserver(this._handleResize);
+            this._state.resizeObserver.observe(this._state.options.resizeTo);
+        } else this._state.options.resizeTo.addEventListener('resize', this._handleResize);
     }
 
     /**
@@ -182,9 +193,9 @@ export class ASCIIRenderer {
      * @param event Mouse event to handle.
      */
     private _mouseMoveHandler = (event: MouseEvent) => {
-        const rect = this._canvas.getBoundingClientRect();
-        this._mouseX = event.clientX - rect.left;
-        this._mouseY = event.clientY - rect.top;
+        const rect = this._state.canvas!.getBoundingClientRect();
+        this._state.mouseX = event.clientX - rect.left;
+        this._state.mouseY = event.clientY - rect.top;
     };
 
     /**
@@ -192,7 +203,7 @@ export class ASCIIRenderer {
      * This can be used by patterns to respond to user input.
      */
     private _mouseClickHandler = () => {
-        this._mouseClicked = true;
+        this._state.mouseClicked = true;
     };
     
     /**
@@ -200,72 +211,72 @@ export class ASCIIRenderer {
      * This allows patterns to respond to mouse movements and clicks.
      */
     private _setupMouseEvents(): void {
-        this._canvas.addEventListener('mousemove', this._mouseMoveHandler);
-        this._canvas.addEventListener('click', this._mouseClickHandler);
+        this._state.canvas!.addEventListener('mousemove', this._mouseMoveHandler);
+        this._state.canvas!.addEventListener('click', this._mouseClickHandler);
     }
 
     /**
      * Render a single frame.
      */
     public render(time: number = performance.now()): void {
-        const deltaTime = time - this._lastTime;
-        this._lastTime = time;
+        const deltaTime = time - this._state.lastTime;
+        this._state.lastTime = time;
 
-        if (this._options.animated)
-            this._animationTime += (deltaTime / 1000) * this._options.animationSpeed;
+        if (this._state.options.animated)
+            this._state.animationTime += (deltaTime / 1000) * this._state.options.animationSpeed;
 
         const context: PatternContext = {
-            time: this._animationTime,
+            time: this._state.animationTime,
             deltaTime: deltaTime / 1000,
-            animationTime: this._animationTime,
-            region: this._region,
-            mouseX: this._mouseX,
-            mouseY: this._mouseY,
-            clicked: this._mouseClicked,
-            isAnimating: this._options.animated,
-            animationSpeed: this._options.animationSpeed,
+            animationTime: this._state.animationTime,
+            region: this._state.region!,
+            mouseX: this._state.mouseX,
+            mouseY: this._state.mouseY,
+            clicked: this._state.mouseClicked,
+            isAnimating: this._state.options.animated,
+            animationSpeed: this._state.options.animationSpeed,
         };
 
-        this._mouseClicked = false;
-        const characters = this._pattern.update(context).generate(context);
+        this._state.mouseClicked = false;
+        const characters = this._state.pattern!.update(context).generate(context);
 
-        if (!this._hasOutputChanged(characters) && !this._isDirty && !this._pattern.isDirty)
+        if (!this._hasOutputChanged(characters) && !this._state.isDirty && !this._state.pattern!.isDirty)
             return;
 
-        this._isDirty = false;
-        this._pattern.isDirty = false;
-        this._lastHash = this._hash(characters);
-        this._renderer.clear(this._options.backgroundColor);
-        this._renderer.render(characters, this._region);
+        this._state.isDirty = false;
+        this._state.pattern!.isDirty = false;
+        this._state.lastHash = this._hash(characters);
+        this._state.renderer!.clear(this._state.options.backgroundColor);
+        this._state.renderer!.render(characters, this._state.region!);
     }
 
     /**
      * Start animation loop.
      */
     public startAnimation(): void {
-        this._options.animated = true;
-        this._lastTime = performance.now();
+        this._state.options.animated = true;
+        this._state.lastTime = performance.now();
 
         const animate = (time: number) => {
             if (!this.isAnimating)
                 return;
 
             this.render(time);
-            this._animationId = requestAnimationFrame(animate);
+            this._state.animationId = requestAnimationFrame(animate);
         };
 
-        this._animationId = requestAnimationFrame(animate);
+        this._state.animationId = requestAnimationFrame(animate);
     }
 
     /**
      * Stop animation loop.
      */
     public stopAnimation(): void {
-        this._options.animated = false;
+        this._state.options.animated = false;
 
-        if (this._animationId !== null) {
-            cancelAnimationFrame(this._animationId);
-            this._animationId = null;
+        if (this._state.animationId !== null) {
+            cancelAnimationFrame(this._state.animationId);
+            this._state.animationId = null;
         }
     }
 
@@ -274,7 +285,7 @@ export class ASCIIRenderer {
      * Useful when restarting animations or switching patterns.
      */
     private _resetAnimationTime(): void {
-        this._animationTime = 0;
+        this._state.animationTime = 0;
     }
 
     /**
@@ -282,9 +293,9 @@ export class ASCIIRenderer {
      * This ensures that the renderer reflects the current animation settings.
      */
     private _syncAnimationState(): void {
-        if (this._options.animated && this._animationId === null)
+        if (this._state.options.animated && this._state.animationId === null)
             this.startAnimation();
-        else if (!this._options.animated && this._animationId !== null) 
+        else if (!this._state.options.animated && this._state.animationId !== null) 
             this.stopAnimation();
     }
 
@@ -292,12 +303,12 @@ export class ASCIIRenderer {
      * Update rendering options.
      */
     public setOptions(newOptions: Partial<ASCIIRendererOptions>): void {
-        const oldOptions = this._options;
-        this._options = { ...oldOptions, ...newOptions };
-        this._isDirty = this._hasOptionsChanged(oldOptions);
-        this._region = this._calculateRegion();
-        this._pattern.initialize(this._region);
-        this._renderer.options = this._options;
+        const oldOptions = this._state.options;
+        this._state.options = { ...oldOptions, ...newOptions };
+        this._state.isDirty = this._hasOptionsChanged(oldOptions);
+        this._state.region = this._calculateRegion();
+        this._state.pattern!.initialize(this._state.region);
+        this._state.renderer!.options = this._state.options;
         this._syncAnimationState();
     }
 
@@ -305,22 +316,22 @@ export class ASCIIRenderer {
      * Resize the canvas and recalculate layout.
      */
     public resize(): void {
-        const width = this._options.resizeTo instanceof HTMLElement
-            ? this._options.resizeTo.clientWidth
-            : this._options.resizeTo.innerWidth;
+        const width = this._state.options.resizeTo instanceof HTMLElement
+            ? this._state.options.resizeTo.clientWidth
+            : this._state.options.resizeTo.innerWidth;
 
-        const height = this._options.resizeTo instanceof HTMLElement
-            ? this._options.resizeTo.clientHeight
-            : this._options.resizeTo.innerHeight;
+        const height = this._state.options.resizeTo instanceof HTMLElement
+            ? this._state.options.resizeTo.clientHeight
+            : this._state.options.resizeTo.innerHeight;
 
-        this._canvas.width = width;
-        this._canvas.height = height;
-        this._region = this._calculateRegion();
-        this._renderer.resize(width, height);
-        this._pattern.initialize(this._region);
+        this._state.canvas!.width = width;
+        this._state.canvas!.height = height;
+        this._state.region = this._calculateRegion();
+        this._state.renderer!.resize(width, height);
+        this._state.pattern!.initialize(this._state.region);
 
         if (!this.isAnimating) {
-            this._isDirty = true;
+            this._state.isDirty = true;
             this.render();
         }
     }
@@ -330,12 +341,13 @@ export class ASCIIRenderer {
      */
     public destroy(): void {
         this.stopAnimation();
-        this._pattern.destroy();
-        this._renderer.destroy();
-        this._canvas.removeEventListener('mousemove', this._mouseMoveHandler);
-        this._canvas.removeEventListener('click', this._mouseClickHandler);
-        this._tempCanvas = null;
-        this._tempContext = null;
+        this._state.pattern?.destroy();
+        this._state.renderer?.destroy();
+        this._state.canvas?.removeEventListener('mousemove', this._mouseMoveHandler);
+        this._state.canvas?.removeEventListener('click', this._mouseClickHandler);
+        this._state.options.resizeTo.removeEventListener('resize', this._handleResize);
+        this._state.resizeObserver?.disconnect();
+        this._state = initState();
     }
 
     /**
@@ -366,7 +378,7 @@ export class ASCIIRenderer {
      * @returns True if the output has changed, false otherwise.
      */
     private _hasOutputChanged(list: CharacterData[]): boolean {
-        return this._hash(list) !== this._lastHash;
+        return this._hash(list) !== this._state.lastHash;
     }
 
     /**
@@ -376,7 +388,7 @@ export class ASCIIRenderer {
      */
     private _hasOptionsChanged(options: Partial<ASCIIRendererOptions>): boolean {
         return Object.keys(options).some((key) => {
-            const oldValue = this._options[key as keyof ASCIIRendererOptions];
+            const oldValue = this._state.options[key as keyof ASCIIRendererOptions];
             const newValue = options[key as keyof ASCIIRendererOptions];
             return oldValue !== newValue;
         });
