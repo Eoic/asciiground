@@ -4,12 +4,13 @@ import { ASCIIRenderer, type ASCIIRendererOptions } from './rendering/ascii-rend
 export class ASCIIGround {
     private _renderer: ASCIIRenderer | null = null;
 
-    constructor(
+    public init(
         canvas: HTMLCanvasElement,
-        pattern: Pattern,
-        options: Partial<ASCIIRendererOptions> = {}
-    ) {
+        pattern?: Pattern,
+        options?: Partial<ASCIIRendererOptions>
+    ): ASCIIGround {
         this._renderer = new ASCIIRenderer(canvas, pattern, options);
+        return this;
     }
 
     public startAnimation(): ASCIIGround {
@@ -23,18 +24,12 @@ export class ASCIIGround {
     }
 
     public setPattern(pattern: Pattern): ASCIIGround {
-        if (!this._renderer) 
-            throw new Error('Renderer is not initialized');
-
-        this._renderer.pattern = pattern;
+        this._renderer!.pattern = pattern;
         return this;
     }
 
     public setOptions(options: Partial<ASCIIRendererOptions>): ASCIIGround {
-        if (!this._renderer) 
-            throw new Error('Renderer is not initialized');
-
-        this._renderer.setOptions(options);
+        this._renderer!.setOptions(options);
         return this;
     }
 

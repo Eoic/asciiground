@@ -28,6 +28,8 @@ export interface ASCIIRendererOptions {
     charSpacingX?: number;
     /** Vertical spacing between characters. If not specified, auto-calculated based on character height */
     charSpacingY?: number;
+    /** Resize target for the renderer, defaults to window. */
+    resizeTo: Window | HTMLElement
 }
 
 const DEFAULT_OPTIONS: ASCIIRendererOptions = {
@@ -42,6 +44,7 @@ const DEFAULT_OPTIONS: ASCIIRendererOptions = {
     animationSpeed: 1,
     charSpacingX: undefined,
     charSpacingY: undefined,
+    resizeTo: window,
 };
 
 /**
@@ -171,6 +174,7 @@ export class ASCIIRenderer {
     private _setupRenderer(): void {
         this._renderer.initialize(this._canvas, this._options);
         this._pattern.initialize(this._region);
+        this._options.resizeTo.addEventListener('resize', () => this.resize());
     }
 
     /**
@@ -225,10 +229,8 @@ export class ASCIIRenderer {
         this._mouseClicked = false;
         const characters = this._pattern.update(context).generate(context);
 
-        if (!this._hasOutputChanged(characters) && !this._isDirty && !this._pattern.isDirty) {
-            console.debug('No changes detected, skipping render.');
+        if (!this._hasOutputChanged(characters) && !this._isDirty && !this._pattern.isDirty)
             return;
-        }
 
         this._isDirty = false;
         this._pattern.isDirty = false;
@@ -302,7 +304,15 @@ export class ASCIIRenderer {
     /**
      * Resize the canvas and recalculate layout.
      */
-    public resize(width: number, height: number): void {
+    public resize(): void {
+        const width = this._options.resizeTo instanceof HTMLElement
+            ? this._options.resizeTo.clientWidth
+            : this._options.resizeTo.innerWidth;
+
+        const height = this._options.resizeTo instanceof HTMLElement
+            ? this._options.resizeTo.clientHeight
+            : this._options.resizeTo.innerHeight;
+
         this._canvas.width = width;
         this._canvas.height = height;
         this._region = this._calculateRegion();

@@ -15,7 +15,6 @@ import { ASCIIRenderer } from '../rendering/ascii-renderer';
 
         document.body.appendChild(canvas);
         handleControls(controls, renderer);
-        handleResize(renderer);
         render(renderer);
         removeLoader(loader);
     }
@@ -24,17 +23,10 @@ import { ASCIIRenderer } from '../rendering/ascii-renderer';
         renderer.render();
     }
 
-    function handleResize(renderer: ASCIIRenderer) {
-        window.addEventListener('resize', () => {
-            renderer.resize(window.innerWidth, window.innerHeight);
-        });
-    }
-
     function handleControls(controls: HTMLFormElement, renderer: ASCIIRenderer) {
         const controlsManager = createPatternControls(controls, renderer);
         controls.classList.remove('hidden');
         controlsManager.switchPattern('perlin-noise');
-        window.controlsManager = controlsManager;
     }
 
     function removeLoader(loader: HTMLElement) {
